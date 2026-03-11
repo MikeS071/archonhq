@@ -79,6 +79,7 @@ graph TD
     class API,NATS,DB,LEDGER hub;
     classDef node fill:#bbf,stroke:#333;
     class HN node;
+```
 
 ## What this kit contains
 
