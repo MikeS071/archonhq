@@ -51,7 +51,7 @@ services:
       - "8080:8080"
     volumes:
       - ../..:/app:cached           # live code reload during dev (optional)
-    command: go run ./cmd/api/main.go   # or ./cmd/api after build
+    command: ["/app/api"]   # ← this line: run the compiled binary
 
 volumes:
   postgres_data:
