@@ -1,0 +1,32 @@
+{
+  "result_id": "res_01",
+  "task_id": "task_01",
+  "lease_id": "lease_01",
+  "node_id": "node_01",
+  "agent_id": "agent_01",
+  "output_refs": [
+    "art_01",
+    "art_02"
+  ],
+  "metering": {
+    "cpu_sec": 41.2,
+    "gpu_sec": 0,
+    "gpu_class": "cpu-only",
+    "tokens_in": 18234,
+    "tokens_out": 3890,
+    "external_tool_calls": 0,
+    "network_mb": 12.3,
+    "storage_mb": 4.9,
+    "backend_type": "docker",
+    "runtime_wall_sec": 711,
+    "model_provider": "openrouter",
+    "model_name": "example"
+  },
+  "quality_inputs": {
+    "validity": 1.0,
+    "verifier_score": 0.0,
+    "acceptance_signal": 0.0,
+    "novelty": 0.92,
+    "latency_score": 0.77
+  }
+}

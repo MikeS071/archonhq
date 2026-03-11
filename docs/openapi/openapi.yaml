@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info:
+  title: JouleWork Network API
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+components:
+  securitySchemes:
+    clerkBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    nodeBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: NodeToken
+  schemas:
+    TaskSpec:
+      type: object
+      required: [workspace_id, task_family, title]
+      properties:
+        workspace_id:
+          type: string
+        task_family:
+          type: string
+          enum: [research.extract, doc.section.write, code.patch, verify.result, reduce.merge, autosearch.self_improve]
+        title:
+          type: string
+        description:
+          type: string
+        input_refs:
+          type: array
+          items:
+            type: string
+    ResultClaim:
+      type: object
+      required: [result_id, task_id, lease_id]
+      properties:
+        result_id: {type: string}
+        task_id: {type: string}
+        lease_id: {type: string}
+        output_refs:
+          type: array
+          items: {type: string}
+paths:
+  /v1/tasks:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskSpec'
+      responses:
+        '200':
+          description: Task created
+  /v1/results:
+    post:
+      security:
+        - nodeBearer: []
+      summary: Submit result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResultClaim'
+      responses:
+        '200':
+          description: Result accepted for processing

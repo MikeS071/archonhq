@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaskSpec",
+  "type": "object",
+  "required": [
+    "workspace_id",
+    "task_family",
+    "title"
+  ],
+  "properties": {
+    "workspace_id": {
+      "type": "string"
+    },
+    "task_family": {
+      "type": "string",
+      "enum": [
+        "research.extract",
+        "doc.section.write",
+        "code.patch",
+        "verify.result",
+        "reduce.merge",
+        "autosearch.self_improve"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "input_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "execution_policy": {
+      "type": "object"
+    }
+  }
+}

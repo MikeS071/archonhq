@@ -1,0 +1,29 @@
+{
+  "task_id": "task_01",
+  "tenant_id": "ten_01",
+  "workspace_id": "ws_01",
+  "task_family": "autosearch.self_improve",
+  "title": "Improve benchmark score on bounded eval suite",
+  "description": "Propose bounded code/config edits and test against a reproducible benchmark harness",
+  "merge_strategy": "topk_rank_v1",
+  "verification_policy": {
+    "required_verifiers": [
+      "benchmark",
+      "reproducibility",
+      "policy"
+    ],
+    "min_pass_count": 2
+  },
+  "execution_policy": {
+    "allowed_backends": [
+      "docker",
+      "modal"
+    ],
+    "allowed_toolsets": [
+      "file",
+      "terminal"
+    ],
+    "network_policy": "restricted",
+    "max_runtime_s": 7200
+  }
+}
