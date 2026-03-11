@@ -1,33 +1,58 @@
-version: "3.9"
+version: '3.9'
 
 services:
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: jw
-      POSTGRES_PASSWORD: jw
-      POSTGRES_DB: joulework
+      POSTGRES_USER: ${POSTGRES_USER:-archon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-archonhq}
     ports:
       - "5432:5432"
-
-  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-archon}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   nats:
-    image: nats:2
-    command: ["-js"]
+    image: nats:2-alpine
+    restart: unless-stopped
+    command: --jetstream --http_port 8222
     ports:
-      - "4222:4222"
-      - "8222:8222"
+      - "4222:4222"    # client connections
+      - "8222:8222"    # monitoring
+    volumes:
+      - nats_data:/var/lib/nats
+    healthcheck:
+      test: ["CMD", "nats", "server", "check", "connection"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
+  api:
+    build:
+      context: ../..          # root of repo (adjust if needed)
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
+      DATABASE_URL: postgres://${POSTGRES_USER:-archon}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-archonhq}?sslmode=disable
+      NATS_URL: nats://nats:4222
+      PORT: 8080
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "8080:8080"
+    volumes:
+      - ../..:/app  # for live reload during dev (optional)
+    command: ["/app/cmd/api"]   # adjust to your actual binary path once built
+
+volumes:
+  postgres_data:
+  nats_data:
