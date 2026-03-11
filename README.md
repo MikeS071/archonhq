@@ -1,6 +1,6 @@
-# JouleWork Network — Complete Codex Build Kit
+# ArchonHQ - JouleWork Network — Complete Codex Build Kit
 
-This is the merged, reconciled handoff package for building **JouleWork Network**.
+This is the merged, reconciled handoff package for building **ArchonHQ**.
 
 It combines all prior specs in this chat into one GitHub-ready kit.
 
