@@ -96,6 +96,61 @@ graph TD
     class HN node;
 ```
 
+## Quick Start – Run the Core Stack
+
+Prerequisites: Docker + Docker Compose
+
+```bash
+# 1. Clone & enter templates dir
+git clone https://github.com/MikeS071/archonhq.git
+cd archonhq/deploy/templates
+
+# 2. Prepare environment (defaults are fine for dev)
+cp .env.example .env
+# Optional: edit .env (e.g. change passwords)
+
+# 3. Start Postgres + NATS + API
+docker compose up --build
+```
+
+# Verify it's running
+```bash
+# API health check (should return ~10 seconds after startup)
+curl http://localhost:8080/health
+```
+
+# Expected output:
+```text
+textOK - ArchonHQ API healthy
+DB connected: postgres://archon:devpassword@postgres:5432/archonhq?sslmode=disable
+NATS connected: nats://nats:4222
+Other useful endpoints / views:
+```
+NATS monitoring dashboard → http://localhost:8222
+Postgres shell → docker compose exec postgres psql -U archon -d archonhq
+(password: devpassword unless changed)
+
+Stop: Ctrl+C or docker compose down
+
+# Current Status
+
+- Runnable core: Postgres, NATS (JetStream enabled), Go API with health endpoint
+- Connectivity verified: API confirms DB + NATS reachability
+- Implemented: Basic health checks, environment config, Docker multi-stage build
+- Coming next: schema migrations on startup, NATS stream/consumer setup, task submission endpoints, Clerk auth stub, Hermes - adapter mocks, SvelteKit frontend skeleton
+
+# Contributing
+See open issues and CONTRIBUTING.md for how to help.
+Feedback, specs feedback, code stubs, tests, docs, diagrams — all welcome!
+Please read CONTRIBUTING.md for guidelines.
+Issue & PR templates are already set up in .github/.
+
+# License
+MIT
+Built in Melbourne, Australia
+Questions or ideas? Open an issue or ping @teaser380 on X.
+
+
 ## What this kit contains
 
 Core:
