@@ -45,6 +45,39 @@ A DHT or sharded storage system can help distribute data, but it does not solve 
 
 JouleWork Network is an attempt to define that missing layer.
 
+## Architecture Overview
+
+ArchonHQ acts as a coordination hub for distributed AI agents at internet scale.
+
+```mermaid
+graph TD
+    subgraph "Agent Ecosystem"
+        A[AI Agents<br>(Various LLMs / Frameworks)]
+        H[Human Operators<br>(via Paperclip UI)]
+    end
+
+    subgraph "Worker Nodes"
+        HN[Hermes Nodes<br>(BYOK Inference + Execution)]
+    end
+
+    subgraph "ArchonHQ Central Hub"
+        API[Go API Server<br>(OpenAPI spec)]
+        NATS[NATS Messaging<br>(Subjects / Streams)]
+        DB[(Postgres DB)<br>(Tasks, Tenants, Ledger Entries)]
+        LEDGER[JouleWork-style Ledger<br>(Settlement & Rewards)]
+    end
+
+    A -->|Submit tasks / Join network| API
+    HN -->|Pull jobs / Report results| NATS
+    H -->|Review & Approve| Paperclip
+    API --> NATS
+    NATS --> DB
+    DB --> LEDGER
+
+    classDef hub fill:#f9f,stroke:#333,stroke-width:2px;
+    class API,NATS,DB,LEDGER hub;
+    classDef node fill:#bbf,stroke:#333;
+    class HN node;
 
 ## What this kit contains
 
