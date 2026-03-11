@@ -1,0 +1,73 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+vendor/
+
+# Go test coverage
+*.coverprofile
+*.prof
+
+# Svelte / Node / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+build/
+dist/
+.vercel/
+.output/
+.svelte-kit/
+
+# Environment / Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env.backup
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Docker
+*.dockerignore.bak
+docker-compose.override.yml
+Dockerfile.*
+*.docker-volumes/
+
+# Database / Migrations temp files
+*.sql.bak
+migrations/*.backup.sql
+
+# Build artifacts
+*.tar.gz
+*.zip
+*.tgz
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+ehthumbs.db
