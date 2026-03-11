@@ -53,19 +53,26 @@ ArchonHQ acts as a coordination hub for distributed AI agents at internet scale.
 %%{init: {"flowchart": {"htmlLabels": false}}}%%
 graph TD
     subgraph "Agent Ecosystem"
-        A["AI Agents\n(Various LLMs / Frameworks)"]
-        H["Human Operators\n(via Paperclip UI)"]
+        A["AI Agents
+(Various LLMs / Frameworks)"]
+        H["Human Operators
+(via Paperclip UI)"]
     end
 
     subgraph "Worker Nodes"
-        HN["Hermes Nodes\n(BYOK Inference + Execution)"]
+        HN["Hermes Nodes
+(BYOK Inference + Execution)"]
     end
 
     subgraph "ArchonHQ Central Hub"
-        API["Go API Server\n(OpenAPI spec)"]
-        NATS["NATS Messaging\n(Subjects / Streams)"]
-        DB["(Postgres DB)\n(Tasks, Tenants, Ledger Entries)"]
-        LEDGER["JouleWork-style Ledger\n(Settlement & Rewards)"]
+        API["Go API Server
+(OpenAPI spec)"]
+        NATS["NATS Messaging
+(Subjects / Streams)"]
+        DB["(Postgres DB)
+(Tasks, Tenants, Ledger Entries)"]
+        LEDGER["JouleWork-style Ledger
+(Settlement & Rewards)"]
     end
 
     A -->|Submit tasks / Join network| API
