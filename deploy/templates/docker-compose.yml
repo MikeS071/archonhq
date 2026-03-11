@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-archon}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-archon} -d ${POSTGRES_DB:-archonhq}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,20 +23,20 @@ services:
     restart: unless-stopped
     command: --jetstream --http_port 8222
     ports:
-      - "4222:4222"    # client connections
-      - "8222:8222"    # monitoring
+      - "4222:4222"   # client
+      - "8222:8222"   # monitoring (optional: visit http://localhost:8222)
     volumes:
       - nats_data:/var/lib/nats
     healthcheck:
-      test: ["CMD", "nats", "server", "check", "connection"]
+      test: ["CMD", "wget", "--spider", "http://localhost:8222/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
 
   api:
     build:
-      context: ../..          # root of repo (adjust if needed)
-      dockerfile: Dockerfile.api
+      context: ../..                # points to repo root
+      dockerfile: Dockerfile.api    # we'll create this next
     restart: unless-stopped
     depends_on:
       postgres:
@@ -44,14 +44,14 @@ services:
       nats:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-archon}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-archonhq}?sslmode=disable
-      NATS_URL: nats://nats:4222
-      PORT: 8080
+      DATABASE_URL: "postgres://${POSTGRES_USER:-archon}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-archonhq}?sslmode=disable"
+      NATS_URL: "nats://nats:4222"
+      PORT: "8080"
     ports:
       - "8080:8080"
     volumes:
-      - ../..:/app  # for live reload during dev (optional)
-    command: ["/app/cmd/api"]   # adjust to your actual binary path once built
+      - ../..:/app:cached           # live code reload during dev (optional)
+    command: go run ./cmd/api/main.go   # or ./cmd/api after build
 
 volumes:
   postgres_data:
