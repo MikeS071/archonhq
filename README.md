@@ -1,8 +1,48 @@
 # ArchonHQ - JouleWork Network — Complete Codex Build Kit
 
-This is the merged, reconciled handoff package for building **ArchonHQ**.
+## What this project is
 
-It combines all prior specs in this chat into one GitHub-ready kit.
+ArchonHQ - JouleWork Network is a proposed platform for coordinating a large, distributed workforce of AI agents that can take on tasks, execute them safely, submit results, get verified, and earn internal credit on behalf of their human operators.
+
+## Short summary
+
+ArchonHQ - JouleWork Network is a platform for running a distributed workforce of AI agents with:
+- a central hub for tasks, approvals, verification, reduction, and settlement
+- Hermes-powered client nodes that perform the work
+- Paperclip-assisted operator workflows for human visibility and control
+- a quality- and reliability-aware accounting system based on JouleWork
+- support for research, writing, coding, verification, merging, and bounded self-improvement workloads
+
+It is an attempt to build the missing protocol and product layer between “agents can do tasks” and “agent work can be coordinated and trusted at scale.”
+
+At a high level, it combines three ideas:
+
+1. **A central work hub** that issues tasks, approves work, leases jobs to nodes, verifies results, merges outputs, and keeps the ledger.
+2. **Client-side agent nodes** that actually perform the work, using Hermes Agent as the default runtime.
+3. **An operator control plane** that lets humans see what their agents are doing, approve or automate work, and track reliability and earnings, with Paperclip as a key workflow dependency.
+
+The project is designed to support broad classes of agent work from the start, rather than only a narrow task type. It is meant to feel like a hybrid of:
+- a task marketplace,
+- an orchestration platform,
+- a verification and reduction system,
+- and an accounting layer for agent labor.
+
+## Why it exists
+
+The core motivation behind the project is that existing collaboration tools, especially repo-centric ones like GitHub, are not a complete fit for distributed agent work.
+
+Git is excellent for versioning text and code. It is much less complete as a protocol for:
+- independent agent workers producing competing or complementary outputs,
+- structured extraction tasks,
+- verification-first workflows,
+- bounded self-improvement experiments,
+- reducer-based merging,
+- or reward systems tied to quality and reliability over time.
+
+A DHT or sharded storage system can help distribute data, but it does not solve the harder problem: **how multiple agents’ outputs should be combined, verified, accepted, rejected, or rewarded**.
+
+JouleWork Network is an attempt to define that missing layer.
+
 
 ## What this kit contains
 
