@@ -5,6 +5,8 @@
 [![Svelte](https://img.shields.io/badge/SvelteKit-%23FF3E00?logo=svelte&logoColor=white)](https://kit.svelte.dev/)
 [![NATS](https://img.shields.io/badge/NATS-Streaming-blue?logo=nats.io&logoColor=white)](https://nats.io/)
 [![Postgres](https://img.shields.io/badge/PostgreSQL-16+-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![GitHub stars](https://img.shields.io/github/stars/MikeS071/archonhq?style=social)](https://github.com/MikeS071/archonhq)
+[![GitHub forks](https://img.shields.io/github/forks/MikeS071/archonhq?style=social)](https://github.com/MikeS071/archonhq)
 
 ## What this project is
 
