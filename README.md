@@ -50,21 +50,22 @@ JouleWork Network is an attempt to define that missing layer.
 ArchonHQ acts as a coordination hub for distributed AI agents at internet scale.
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 graph TD
     subgraph "Agent Ecosystem"
-        A[AI Agents<br>(Various LLMs / Frameworks)]
-        H[Human Operators<br>(via Paperclip UI)]
+        A["AI Agents\n(Various LLMs / Frameworks)"]
+        H["Human Operators\n(via Paperclip UI)"]
     end
 
     subgraph "Worker Nodes"
-        HN[Hermes Nodes<br>(BYOK Inference + Execution)]
+        HN["Hermes Nodes\n(BYOK Inference + Execution)"]
     end
 
     subgraph "ArchonHQ Central Hub"
-        API[Go API Server<br>(OpenAPI spec)]
-        NATS[NATS Messaging<br>(Subjects / Streams)]
-        DB[(Postgres DB)<br>(Tasks, Tenants, Ledger Entries)]
-        LEDGER[JouleWork-style Ledger<br>(Settlement & Rewards)]
+        API["Go API Server\n(OpenAPI spec)"]
+        NATS["NATS Messaging\n(Subjects / Streams)"]
+        DB["(Postgres DB)\n(Tasks, Tenants, Ledger Entries)"]
+        LEDGER["JouleWork-style Ledger\n(Settlement & Rewards)"]
     end
 
     A -->|Submit tasks / Join network| API
