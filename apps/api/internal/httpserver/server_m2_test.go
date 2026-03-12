@@ -246,7 +246,7 @@ func TestTaskApprovalLeaseLifecycle(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("approved"))
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT status FROM nodes WHERE node_id = $1 AND tenant_id = $2")).WithArgs("node_01", "ten_01").
 		WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("active"))
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO leases")).WithArgs("lease_01", "ten_01", "task_01", "node_01", 1, "granted", "approved", sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO leases")).WithArgs("lease_01", "ten_01", "task_01", "node_01", 1, "granted", "approved", sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	createLease := newJSONRequest(t, http.MethodPost, "/v1/leases", "human:ten_01:user_admin:tenant_admin,operator,approver", "idem_lease_1", map[string]any{
 		"lease_id":           "lease_01",

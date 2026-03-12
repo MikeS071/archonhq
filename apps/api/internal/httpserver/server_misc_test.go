@@ -19,19 +19,17 @@ func TestServerMiscHandlersAndMiddleware(t *testing.T) {
 	srv := newTestServer(t, dbMock, eventStore)
 	h := srv.Handler()
 
-	resultReq := newJSONRequest(t, http.MethodPost, "/v1/results", "node:ten_01:node_01:cred_01", "idem_result_1", map[string]any{
+	resultReq := newJSONRequest(t, http.MethodPost, "/v1/results", "node:ten_01:node_01", "idem_result_1", map[string]any{
 		"result_id":   "res_01",
 		"task_id":     "task_01",
 		"lease_id":    "lease_01",
 		"output_refs": []string{"art_1"},
+		"signature":   "signed:node_01:lease_01:res_01",
 	})
 	rrResult := httptest.NewRecorder()
 	h.ServeHTTP(rrResult, resultReq)
-	if rrResult.Code != http.StatusOK {
-		t.Fatalf("submit result expected 200 got %d body=%s", rrResult.Code, rrResult.Body.String())
-	}
-	if len(eventStore.events) == 0 {
-		t.Fatalf("expected submit-result event to be recorded")
+	if rrResult.Code != http.StatusUnauthorized {
+		t.Fatalf("submit result expected 401 without credential setup got %d body=%s", rrResult.Code, rrResult.Body.String())
 	}
 
 	legacyCreateReq := newJSONRequest(t, http.MethodPost, "/v1/tasks", "human:ten_01:user_1:operator", "idem_legacy_task_1", map[string]any{

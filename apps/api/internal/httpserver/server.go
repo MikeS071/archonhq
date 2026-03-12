@@ -3,8 +3,10 @@ package httpserver
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -89,14 +91,19 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/leases/{lease_id}/release", auth.RequireNode(http.HandlerFunc(s.handleReleaseLeaseV2)))
 	mux.Handle("POST /v1/leases/{lease_id}/extend", auth.RequireNode(http.HandlerFunc(s.handleExtendLeaseV2)))
 
+	mux.Handle("POST /v1/artifacts/upload-url", auth.RequireNode(http.HandlerFunc(s.handleArtifactUploadURLV2)))
+	mux.Handle("POST /v1/artifacts/register", auth.RequireNode(http.HandlerFunc(s.handleArtifactRegisterV2)))
+	mux.Handle("GET /v1/artifacts/{artifact_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetArtifactV2)))
+	mux.Handle("GET /v1/artifacts/{artifact_id}/download-url", auth.RequireHuman(http.HandlerFunc(s.handleArtifactDownloadURLV2)))
+
 	mux.Handle("POST /v1/results", auth.RequireNode(http.HandlerFunc(s.handleSubmitResult)))
+	mux.Handle("GET /v1/results/{result_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetResultV2)))
+	mux.Handle("GET /v1/tasks/{task_id}/results", auth.RequireHuman(http.HandlerFunc(s.handleTaskResultsV2)))
 
 	// API contract placeholders.
 	for _, route := range []string{
 		"POST /v1/tasks/{task_id}/decompose",
 		"POST /v1/approvals/{approval_id}/auto-mode",
-		"POST /v1/artifacts/upload-url", "POST /v1/artifacts/register", "GET /v1/artifacts/{artifact_id}", "GET /v1/artifacts/{artifact_id}/download-url",
-		"GET /v1/results/{result_id}", "GET /v1/tasks/{task_id}/results",
 		"POST /v1/verifications", "GET /v1/verifications/{verification_id}", "GET /v1/results/{result_id}/verifications",
 		"POST /v1/reductions", "GET /v1/reductions/{reduction_id}",
 		"GET /v1/reliability/subjects/{subject_type}/{subject_id}", "GET /v1/operators/{operator_id}/reliability",
@@ -188,14 +195,22 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 type submitResultRequest struct {
-	ResultID string   `json:"result_id"`
-	TaskID   string   `json:"task_id"`
-	LeaseID  string   `json:"lease_id"`
-	Outputs  []string `json:"output_refs"`
+	ResultID      string        `json:"result_id"`
+	TaskID        string        `json:"task_id"`
+	LeaseID       string        `json:"lease_id"`
+	Outputs       []string      `json:"output_refs"`
+	Signature     string        `json:"signature"`
+	TelemetryRefs telemetryRefs `json:"telemetry_refs,omitempty"`
 }
 
 func (s *Server) handleSubmitResult(w http.ResponseWriter, r *http.Request) {
-	corrID := telemetry.CorrelationIDFromContext(r.Context())
+	actor, corrID, ok := s.requireActor(w, r)
+	if !ok {
+		return
+	}
+	if !s.validateNodeCredential(w, r, actor, corrID) {
+		return
+	}
 	idemKey := r.Header.Get("Idempotency-Key")
 
 	var req submitResultRequest
@@ -203,36 +218,136 @@ func (s *Server) handleSubmitResult(w http.ResponseWriter, r *http.Request) {
 		apierrors.Write(w, http.StatusBadRequest, "invalid_request", "Invalid JSON payload.", corrID, nil)
 		return
 	}
-	if req.ResultID == "" || req.TaskID == "" || req.LeaseID == "" {
-		apierrors.Write(w, http.StatusBadRequest, "invalid_request", "result_id, task_id, and lease_id are required.", corrID, nil)
+	req.ResultID = strings.TrimSpace(req.ResultID)
+	req.TaskID = strings.TrimSpace(req.TaskID)
+	req.LeaseID = strings.TrimSpace(req.LeaseID)
+	req.Signature = strings.TrimSpace(req.Signature)
+	if req.ResultID == "" || req.TaskID == "" || req.LeaseID == "" || req.Signature == "" {
+		apierrors.Write(w, http.StatusBadRequest, "invalid_request", "result_id, task_id, lease_id, and signature are required.", corrID, nil)
 		return
+	}
+
+	const leaseQ = "SELECT tenant_id, node_id, task_id, status FROM leases WHERE lease_id = $1"
+	var leaseTenantID, leaseNodeID, leaseTaskID, leaseStatus string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), leaseQ, req.LeaseID).Scan(&leaseTenantID, &leaseNodeID, &leaseTaskID, &leaseStatus); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			apierrors.Write(w, http.StatusNotFound, "lease_not_found", "Lease not found.", corrID, nil)
+			return
+		}
+		apierrors.Write(w, http.StatusInternalServerError, "lease_lookup_failed", "Failed to validate lease.", corrID, nil)
+		return
+	}
+	if leaseTenantID != actor.TenantID || leaseNodeID != actor.ID || leaseTaskID != req.TaskID {
+		apierrors.Write(w, http.StatusForbidden, "forbidden", "Lease does not belong to node/tenant/task.", corrID, nil)
+		return
+	}
+	if leaseStatus != "claimed" && leaseStatus != "granted" {
+		apierrors.Write(w, http.StatusConflict, "invalid_lease_status", "Lease is not in a submittable status.", corrID, nil)
+		return
+	}
+	if !verifyResultSignature(req.Signature, actor.ID, req.LeaseID, req.ResultID) {
+		apierrors.Write(w, http.StatusBadRequest, "invalid_signature", "Invalid result signature.", corrID, nil)
+		return
+	}
+
+	const workspaceQ = "SELECT workspace_id FROM tasks WHERE task_id = $1 AND tenant_id = $2"
+	var workspaceID string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), workspaceQ, req.TaskID, actor.TenantID).Scan(&workspaceID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			apierrors.Write(w, http.StatusNotFound, "task_not_found", "Task not found.", corrID, nil)
+			return
+		}
+		apierrors.Write(w, http.StatusInternalServerError, "task_lookup_failed", "Failed to validate task.", corrID, nil)
+		return
+	}
+	const artifactQ = "SELECT artifact_id FROM artifacts WHERE artifact_id = $1 AND tenant_id = $2 AND workspace_id = $3"
+	for _, artifactID := range req.Outputs {
+		artifactID = strings.TrimSpace(artifactID)
+		if artifactID == "" {
+			continue
+		}
+		var validatedID string
+		if err := s.postgres.DB.QueryRowContext(r.Context(), artifactQ, artifactID, actor.TenantID, workspaceID).Scan(&validatedID); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				apierrors.Write(w, http.StatusBadRequest, "invalid_output_ref", "Output artifact is missing or outside tenant/workspace scope.", corrID, map[string]any{"artifact_id": artifactID})
+				return
+			}
+			apierrors.Write(w, http.StatusInternalServerError, "artifact_lookup_failed", "Failed to validate output artifacts.", corrID, nil)
+			return
+		}
+	}
+
+	meteringJSON, _ := json.Marshal(map[string]any{"output_count": len(req.Outputs)})
+	qualityInputsJSON, _ := json.Marshal(map[string]any{"signature_verified": true})
+	const insertResultQ = "INSERT INTO results (result_id, tenant_id, task_id, lease_id, node_id, status, signature, metering_json, quality_inputs_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)"
+	if _, err := s.postgres.DB.ExecContext(r.Context(), insertResultQ, req.ResultID, actor.TenantID, req.TaskID, req.LeaseID, actor.ID, "submitted", req.Signature, meteringJSON, qualityInputsJSON); err != nil {
+		apierrors.Write(w, http.StatusInternalServerError, "result_create_failed", "Failed to persist result.", corrID, nil)
+		return
+	}
+	for _, artifactID := range req.Outputs {
+		artifactID = strings.TrimSpace(artifactID)
+		if artifactID == "" {
+			continue
+		}
+		const insertOutputRefQ = "INSERT INTO result_output_refs (result_id, artifact_id) VALUES ($1,$2)"
+		if _, err := s.postgres.DB.ExecContext(r.Context(), insertOutputRefQ, req.ResultID, artifactID); err != nil {
+			apierrors.Write(w, http.StatusInternalServerError, "result_output_ref_failed", "Failed to persist result outputs.", corrID, nil)
+			return
+		}
+	}
+	if req.TelemetryRefs.LogsArtifactID != "" || req.TelemetryRefs.ToolCallsArtifactID != "" || req.TelemetryRefs.MetricsArtifactID != "" {
+		const insertTelemetryQ = "INSERT INTO run_telemetry_refs (run_telemetry_id, tenant_id, lease_id, result_id, logs_artifact_id, tool_calls_artifact_id, metrics_artifact_id) VALUES ($1,$2,$3,$4,$5,$6,$7)"
+		if _, err := s.postgres.DB.ExecContext(
+			r.Context(),
+			insertTelemetryQ,
+			"rtel_"+randomID(6),
+			actor.TenantID,
+			req.LeaseID,
+			req.ResultID,
+			strings.TrimSpace(req.TelemetryRefs.LogsArtifactID),
+			strings.TrimSpace(req.TelemetryRefs.ToolCallsArtifactID),
+			strings.TrimSpace(req.TelemetryRefs.MetricsArtifactID),
+		); err != nil {
+			apierrors.Write(w, http.StatusInternalServerError, "telemetry_capture_failed", "Failed to persist telemetry references.", corrID, nil)
+			return
+		}
 	}
 
 	if s.events != nil {
 		_ = s.events.Append(r.Context(), events.Envelope{
 			EventID:        "evt_" + randomID(8),
-			TenantID:       "tenant_stub",
+			TenantID:       actor.TenantID,
 			EntityType:     "result",
 			EntityID:       req.ResultID,
 			EventType:      "result.submitted",
 			EventVersion:   1,
 			ActorType:      "node",
-			ActorID:        "node_stub",
+			ActorID:        actor.ID,
 			CorrelationID:  corrID,
 			IdempotencyKey: idemKey,
 			Payload: map[string]any{
 				"task_id":      req.TaskID,
 				"lease_id":     req.LeaseID,
 				"output_count": len(req.Outputs),
+				"signature_ok": true,
 			},
 			OccurredAt: time.Now().UTC(),
 		})
+		s.appendEvent(r, actor.TenantID, "result", req.ResultID, "result.signature_verified", map[string]any{"lease_id": req.LeaseID})
+		if req.TelemetryRefs.LogsArtifactID != "" || req.TelemetryRefs.ToolCallsArtifactID != "" || req.TelemetryRefs.MetricsArtifactID != "" {
+			s.appendEvent(r, actor.TenantID, "result", req.ResultID, "result.telemetry_captured", map[string]any{
+				"logs_artifact_id":       req.TelemetryRefs.LogsArtifactID,
+				"tool_calls_artifact_id": req.TelemetryRefs.ToolCallsArtifactID,
+				"metrics_artifact_id":    req.TelemetryRefs.MetricsArtifactID,
+			})
+		}
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
-		"result_id":      req.ResultID,
-		"status":         "accepted_for_processing",
-		"correlation_id": corrID,
+		"result_id":          req.ResultID,
+		"status":             "accepted_for_processing",
+		"signature_verified": true,
+		"correlation_id":     corrID,
 	})
 }
 

@@ -16,6 +16,7 @@ import (
 	"github.com/MikeS071/archonhq/pkg/auth"
 	"github.com/MikeS071/archonhq/pkg/domain"
 	"github.com/MikeS071/archonhq/pkg/events"
+	"github.com/MikeS071/archonhq/pkg/policy"
 	"github.com/MikeS071/archonhq/pkg/telemetry"
 )
 
@@ -964,6 +965,12 @@ func (s *Server) handleCreateLeaseV2(w http.ResponseWriter, r *http.Request) {
 		apierrors.Write(w, http.StatusConflict, "node_not_active", "Node must be active before lease creation.", corrID, nil)
 		return
 	}
+	execPolicy, err := policy.NormalizeExecutionPolicy(req.ExecutionPolicy)
+	if err != nil {
+		apierrors.Write(w, http.StatusBadRequest, "invalid_execution_policy", "Invalid execution_policy payload.", corrID, map[string]any{"reason": err.Error()})
+		return
+	}
+	execPolicyJSON, _ := json.Marshal(execPolicy.Snapshot())
 	leaseID := strings.TrimSpace(req.LeaseID)
 	if leaseID == "" {
 		leaseID = "lease_" + randomID(6)
@@ -975,14 +982,22 @@ func (s *Server) handleCreateLeaseV2(w http.ResponseWriter, r *http.Request) {
 	grantedAt := time.Now().UTC()
 	expiresAt := grantedAt.Add(time.Duration(expiresIn) * time.Second)
 
-	const q = "INSERT INTO leases (lease_id, tenant_id, task_id, node_id, attempt, status, approval_state, granted_at, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)"
-	if _, err := s.postgres.DB.ExecContext(r.Context(), q, leaseID, actor.TenantID, req.TaskID, req.NodeID, 1, "granted", "approved", grantedAt, expiresAt); err != nil {
+	const q = "INSERT INTO leases (lease_id, tenant_id, task_id, node_id, attempt, status, approval_state, granted_at, expires_at, execution_policy_snapshot_json) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)"
+	if _, err := s.postgres.DB.ExecContext(r.Context(), q, leaseID, actor.TenantID, req.TaskID, req.NodeID, 1, "granted", "approved", grantedAt, expiresAt, execPolicyJSON); err != nil {
 		apierrors.Write(w, http.StatusInternalServerError, "lease_create_failed", "Failed to create lease.", corrID, nil)
 		return
 	}
 
 	s.appendEvent(r, actor.TenantID, "lease", leaseID, "lease.granted", map[string]any{"task_id": req.TaskID, "node_id": req.NodeID})
-	writeJSON(w, http.StatusOK, map[string]any{"lease_id": leaseID, "status": "granted", "task_id": req.TaskID, "node_id": req.NodeID, "expires_at": expiresAt, "correlation_id": corrID})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"lease_id":                  leaseID,
+		"status":                    "granted",
+		"task_id":                   req.TaskID,
+		"node_id":                   req.NodeID,
+		"expires_at":                expiresAt,
+		"execution_policy_snapshot": execPolicy.Snapshot(),
+		"correlation_id":            corrID,
+	})
 }
 
 func (s *Server) handleClaimLeaseV2(w http.ResponseWriter, r *http.Request) {

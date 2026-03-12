@@ -54,16 +54,16 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 - [x] Scaffold `apps/worker-node`
 - [x] Implement Hermes adapter interface in production path
-- [ ] Implement backend policy mapping for Docker/SSH/Modal execution
-- [ ] Enforce isolated ephemeral task workspaces by default
-- [ ] Enforce no write-back to long-lived Hermes personal memory by default
-- [ ] Enforce per-lease network policies and tool grants
-- [ ] Implement artifact upload/register/download flow
-- [ ] Enforce artifact persistence by object storage reference only (no large artifact bytes in Postgres)
-- [ ] Implement signed result submission and verification hooks
-- [ ] Capture run telemetry (logs, tool calls, metrics) and persist references
-- [ ] Enforce BYOK inference-only runtime behavior for v1
-- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+- [x] Implement backend policy mapping for Docker/SSH/Modal execution
+- [x] Enforce isolated ephemeral task workspaces by default
+- [x] Enforce no write-back to long-lived Hermes personal memory by default
+- [x] Enforce per-lease network policies and tool grants
+- [x] Implement artifact upload/register/download flow
+- [x] Enforce artifact persistence by object storage reference only (no large artifact bytes in Postgres)
+- [x] Implement signed result submission and verification hooks
+- [x] Capture run telemetry (logs, tool calls, metrics) and persist references
+- [x] Enforce BYOK inference-only runtime behavior for v1
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## M4 Economics
 
@@ -128,7 +128,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 - [x] M1 exit: foundation scaffolding complete and runnable core wiring in place
 - [x] M2 exit: task lifecycle from tenant/workspace through lease + events/projections working
-- [ ] M3 exit: worker runtime can execute, upload artifacts, and submit signed results
+- [x] M3 exit: worker runtime can execute, upload artifacts, and submit signed results
 - [ ] M4 exit: scoring, pricing, ledger, and reserve flows operational
 - [ ] M5 exit: Svelte operator workflows available for core operations
 - [ ] M6 exit: Paperclip projections syncing from internal source-of-truth state
