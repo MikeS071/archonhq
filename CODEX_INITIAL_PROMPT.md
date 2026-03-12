@@ -1,6 +1,8 @@
 # CODEX_INITIAL_PROMPT.md
 
-Build a new repository named **archonhq**.
+Build this project named **archonhq** with github repo at (https://github.com/MikeS071/archonhq.git). The local directory at ~/projects/archonhq is upto date.
+
+Refactor any "JouleWork Network" phrasing to "ArchonHQ"
 
 Use this kit as the source of truth:
 - SPEC.md
@@ -13,6 +15,44 @@ Use this kit as the source of truth:
 - docs/HERMES_ADAPTER_SPEC.md
 - docs/PAPERCLIP_CONNECTOR_SPEC.md
 - docs/TEST_PLAN.md
+- docs/ERROR_MODEL.md
+- docs/OBSERVABILITY_SPEC.md
+- docs/SECURITY_MODEL.md
+- docs/SEQUENCE_DIAGRAMS.md
+- docs/UI_WIREFRAMES.md
+- docs/go_interfaces - contains go interface specs
+- docs/openapi - contains api specs
+- docs/schemas - contains db schema specs
+
+Examples of key code artefacts exist in the following directories:
+- **examples/** - use those examples to kickstart the build process.
+- **frontend/** - front end routing components
+- **migrations/** - db migration scripts and stubs
+
+## Phased implementation approach
+
+Follow the phased implementation approach below:
+
+### M1 Foundation
+Scaffold monorepo, root files, config, migrations, domain models, auth shell, infra wiring.
+
+### M2 Core workflows
+Implement tenants, workspaces, nodes, tasks, approvals, leases, event store, projections.
+
+### M3 Worker runtime
+Implement worker-node, Hermes adapter, Docker/SSH/Modal execution, artifacts, result submission.
+
+### M4 Economics
+Implement JouleWork, quality scoring, reliability snapshots, pricing, ledger, reserves.
+
+### M5 UI
+Implement Svelte dashboards for tasks, approvals, fleet, ledger, reliability, settings.
+
+### M6 Integrations
+Implement Paperclip connector and projected workflow state.
+
+### M7 Advanced workloads
+Implement code patch merge flows and autosearch self-improve bounded loops.
 
 ## Non-negotiable rules
 
@@ -59,3 +99,4 @@ SporeMesh inspiration:
 Karpathy context:
 - https://github.com/karpathy/nanochat
 - https://github.com/karpathy/nanoGPT
+- https://github.com/karpathy/autosearch
