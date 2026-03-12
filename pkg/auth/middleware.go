@@ -2,14 +2,18 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 )
 
 type Actor struct {
-	Type     string
-	ID       string
-	TenantID string
+	Type         string
+	ID           string
+	TenantID     string
+	CredentialID string
+	Roles        map[string]struct{}
+	TokenRaw     string
 }
 
 type ctxKey string
@@ -32,7 +36,16 @@ func RequireHuman(next http.Handler) http.Handler {
 			http.Error(w, "missing clerk bearer token", http.StatusUnauthorized)
 			return
 		}
-		ctx := WithActor(r.Context(), Actor{Type: "human", ID: "clerk_stub_user", TenantID: "tenant_stub"})
+		actor, err := ParseToken(token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		if actor.Type != "human" {
+			http.Error(w, "human token required", http.StatusUnauthorized)
+			return
+		}
+		ctx := WithActor(r.Context(), actor)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -44,7 +57,16 @@ func RequireNode(next http.Handler) http.Handler {
 			http.Error(w, "missing node bearer token", http.StatusUnauthorized)
 			return
 		}
-		ctx := WithActor(r.Context(), Actor{Type: "node", ID: "node_stub", TenantID: "tenant_stub"})
+		actor, err := ParseToken(token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		if actor.Type != "node" {
+			http.Error(w, "node token required", http.StatusUnauthorized)
+			return
+		}
+		ctx := WithActor(r.Context(), actor)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -59,4 +81,62 @@ func bearerToken(r *http.Request) string {
 		return ""
 	}
 	return strings.TrimSpace(parts[1])
+}
+
+func ParseToken(token string) (Actor, error) {
+	parts := strings.Split(token, ":")
+	if len(parts) < 3 {
+		return Actor{}, fmt.Errorf("invalid bearer token format")
+	}
+
+	switch parts[0] {
+	case "human":
+		actor := Actor{
+			Type:     "human",
+			TenantID: parts[1],
+			ID:       parts[2],
+			Roles:    map[string]struct{}{},
+			TokenRaw: token,
+		}
+		if len(parts) >= 4 {
+			for _, role := range strings.Split(parts[3], ",") {
+				role = strings.TrimSpace(role)
+				if role != "" {
+					actor.Roles[role] = struct{}{}
+				}
+			}
+		}
+		if len(actor.Roles) == 0 {
+			actor.Roles["operator"] = struct{}{}
+		}
+		return actor, nil
+	case "node":
+		actor := Actor{
+			Type:     "node",
+			TenantID: parts[1],
+			ID:       parts[2],
+			Roles:    map[string]struct{}{},
+			TokenRaw: token,
+		}
+		if len(parts) >= 4 {
+			actor.CredentialID = parts[3]
+		}
+		return actor, nil
+	default:
+		return Actor{}, fmt.Errorf("unsupported bearer token type")
+	}
+}
+
+func (a Actor) HasRole(role string) bool {
+	_, ok := a.Roles[role]
+	return ok
+}
+
+func (a Actor) HasAnyRole(roles ...string) bool {
+	for _, role := range roles {
+		if a.HasRole(role) {
+			return true
+		}
+	}
+	return false
 }

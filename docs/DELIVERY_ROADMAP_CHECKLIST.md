@@ -34,20 +34,20 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## M2 Core Workflows
 
-- [ ] Implement tenants and memberships flows
-- [ ] Implement onboarding modes (open, invite, approval, mixed)
-- [ ] Implement minimum RBAC roles (`platform_admin`, `tenant_admin`, `operator`, `approver`, `auditor`, `finance_viewer`, `developer`)
-- [ ] Implement workspaces flows and summaries
-- [ ] Implement nodes registration + heartbeat lifecycle
-- [ ] Implement signed node registration challenge and revocable node credentials flow
-- [ ] Implement tasks creation/feed/detail lifecycle
+- [x] Implement tenants and memberships flows
+- [x] Implement onboarding modes (open, invite, approval, mixed)
+- [x] Implement minimum RBAC roles (`platform_admin`, `tenant_admin`, `operator`, `approver`, `auditor`, `finance_viewer`, `developer`)
+- [x] Implement workspaces flows and summaries
+- [x] Implement nodes registration + heartbeat lifecycle
+- [x] Implement signed node registration challenge and revocable node credentials flow
+- [x] Implement tasks creation/feed/detail lifecycle
 - [x] Support required workload families from day one (`research.extract`, `doc.section.write`, `code.patch`, `verify.result`, `reduce.merge`, `autosearch.self_improve`)
-- [ ] Implement approvals queue + approve/deny flows
-- [ ] Implement leases create/claim/release/extend flows
-- [ ] Persist workflow events to `event_records` for each transition
+- [x] Implement approvals queue + approve/deny flows
+- [x] Implement leases create/claim/release/extend flows
+- [x] Persist workflow events to `event_records` for each transition
 - [x] Implement API endpoint surface for core workflows under `/v1` with Clerk/node auth boundaries
-- [ ] Add projection/materializer read models (`rm_active_tasks`, `rm_approval_queue`, `rm_fleet_overview`, `rm_node_heartbeat`, `rm_task_trace`, `rm_ledger_balances`, `rm_reliability_summary`, `rm_recent_settlements`)
-- [ ] Enforce tenant isolation across all workflow paths
+- [x] Add projection/materializer read models (`rm_active_tasks`, `rm_approval_queue`, `rm_fleet_overview`, `rm_node_heartbeat`, `rm_task_trace`, `rm_ledger_balances`, `rm_reliability_summary`, `rm_recent_settlements`)
+- [x] Enforce tenant isolation across all workflow paths
 
 ## M3 Worker Runtime
 
@@ -119,8 +119,8 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## Milestone Exit Criteria
 
-- [ ] M1 exit: foundation scaffolding complete and runnable core wiring in place
-- [ ] M2 exit: task lifecycle from tenant/workspace through lease + events/projections working
+- [x] M1 exit: foundation scaffolding complete and runnable core wiring in place
+- [x] M2 exit: task lifecycle from tenant/workspace through lease + events/projections working
 - [ ] M3 exit: worker runtime can execute, upload artifacts, and submit signed results
 - [ ] M4 exit: scoring, pricing, ledger, and reserve flows operational
 - [ ] M5 exit: Svelte operator workflows available for core operations

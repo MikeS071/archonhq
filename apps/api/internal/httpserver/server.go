@@ -57,17 +57,44 @@ func (s *Server) Handler() http.Handler {
 		_, _ = w.Write([]byte("ArchonHQ API"))
 	})
 
-	mux.Handle("POST /v1/tasks", auth.RequireHuman(http.HandlerFunc(s.handleCreateTask)))
+	mux.Handle("POST /v1/tenants", auth.RequireHuman(http.HandlerFunc(s.handleCreateTenantV2)))
+	mux.Handle("GET /v1/tenants/{tenant_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetTenantV2)))
+	mux.Handle("PATCH /v1/tenants/{tenant_id}", auth.RequireHuman(http.HandlerFunc(s.handlePatchTenantV2)))
+	mux.Handle("GET /v1/tenants/{tenant_id}/members", auth.RequireHuman(http.HandlerFunc(s.handleGetTenantMembersV2)))
+
+	mux.Handle("POST /v1/workspaces", auth.RequireHuman(http.HandlerFunc(s.handleCreateWorkspaceV2)))
+	mux.Handle("GET /v1/workspaces/{workspace_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetWorkspaceV2)))
+	mux.Handle("GET /v1/workspaces/{workspace_id}/summary", auth.RequireHuman(http.HandlerFunc(s.handleWorkspaceSummaryV2)))
+	mux.Handle("GET /v1/workspaces/{workspace_id}/tasks", auth.RequireHuman(http.HandlerFunc(s.handleWorkspaceTasksV2)))
+	mux.Handle("GET /v1/workspaces/{workspace_id}/ledger", auth.RequireHuman(http.HandlerFunc(s.handleWorkspaceLedgerV2)))
+
+	mux.Handle("POST /v1/nodes/register-intent", auth.RequireHuman(http.HandlerFunc(s.handleNodeRegisterIntentV2)))
+	mux.Handle("POST /v1/nodes/register", auth.RequireHuman(http.HandlerFunc(s.handleNodeRegisterV2)))
+	mux.Handle("POST /v1/nodes/{node_id}/heartbeat", auth.RequireNode(http.HandlerFunc(s.handleNodeHeartbeatV2)))
+	mux.Handle("GET /v1/nodes/{node_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetNodeV2)))
+	mux.Handle("GET /v1/nodes/{node_id}/leases", auth.RequireHuman(http.HandlerFunc(s.handleGetNodeLeasesV2)))
+
+	mux.Handle("POST /v1/tasks", auth.RequireHuman(http.HandlerFunc(s.handleCreateTaskV2)))
+	mux.Handle("GET /v1/tasks/{task_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetTaskV2)))
+	mux.Handle("GET /v1/tasks/feed", auth.RequireHuman(http.HandlerFunc(s.handleTaskFeedV2)))
+	mux.Handle("POST /v1/tasks/{task_id}/cancel", auth.RequireHuman(http.HandlerFunc(s.handleCancelTaskV2)))
+
+	mux.Handle("GET /v1/approvals/queue", auth.RequireHuman(http.HandlerFunc(s.handleApprovalQueueV2)))
+	mux.Handle("GET /v1/approvals/{approval_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetApprovalV2)))
+	mux.Handle("POST /v1/approvals/{approval_id}/approve", auth.RequireHuman(http.HandlerFunc(s.handleApproveV2)))
+	mux.Handle("POST /v1/approvals/{approval_id}/deny", auth.RequireHuman(http.HandlerFunc(s.handleDenyV2)))
+
+	mux.Handle("POST /v1/leases", auth.RequireHuman(http.HandlerFunc(s.handleCreateLeaseV2)))
+	mux.Handle("POST /v1/leases/{lease_id}/claim", auth.RequireNode(http.HandlerFunc(s.handleClaimLeaseV2)))
+	mux.Handle("POST /v1/leases/{lease_id}/release", auth.RequireNode(http.HandlerFunc(s.handleReleaseLeaseV2)))
+	mux.Handle("POST /v1/leases/{lease_id}/extend", auth.RequireNode(http.HandlerFunc(s.handleExtendLeaseV2)))
+
 	mux.Handle("POST /v1/results", auth.RequireNode(http.HandlerFunc(s.handleSubmitResult)))
 
 	// API contract placeholders.
 	for _, route := range []string{
-		"POST /v1/tenants", "GET /v1/tenants/{tenant_id}", "PATCH /v1/tenants/{tenant_id}", "GET /v1/tenants/{tenant_id}/members",
-		"POST /v1/workspaces", "GET /v1/workspaces/{workspace_id}", "GET /v1/workspaces/{workspace_id}/summary", "GET /v1/workspaces/{workspace_id}/tasks", "GET /v1/workspaces/{workspace_id}/ledger",
-		"POST /v1/nodes/register-intent", "POST /v1/nodes/register", "POST /v1/nodes/{node_id}/heartbeat", "GET /v1/nodes/{node_id}", "GET /v1/nodes/{node_id}/leases",
-		"GET /v1/tasks/{task_id}", "GET /v1/tasks/feed", "POST /v1/tasks/{task_id}/cancel", "POST /v1/tasks/{task_id}/decompose",
-		"GET /v1/approvals/queue", "GET /v1/approvals/{approval_id}", "POST /v1/approvals/{approval_id}/approve", "POST /v1/approvals/{approval_id}/deny", "POST /v1/approvals/{approval_id}/auto-mode",
-		"POST /v1/leases", "POST /v1/leases/{lease_id}/claim", "POST /v1/leases/{lease_id}/release", "POST /v1/leases/{lease_id}/extend",
+		"POST /v1/tasks/{task_id}/decompose",
+		"POST /v1/approvals/{approval_id}/auto-mode",
 		"POST /v1/artifacts/upload-url", "POST /v1/artifacts/register", "GET /v1/artifacts/{artifact_id}", "GET /v1/artifacts/{artifact_id}/download-url",
 		"GET /v1/results/{result_id}", "GET /v1/tasks/{task_id}/results",
 		"POST /v1/verifications", "GET /v1/verifications/{verification_id}", "GET /v1/results/{result_id}/verifications",
@@ -78,9 +105,6 @@ func (s *Server) Handler() http.Handler {
 		"GET /v1/policies", "POST /v1/policies", "PATCH /v1/policies/{policy_id}",
 		"POST /v1/integrations/paperclip/sync", "GET /v1/integrations/paperclip/status",
 	} {
-		if route == "POST /v1/tasks" || route == "POST /v1/results" {
-			continue
-		}
 		mux.Handle(route, http.HandlerFunc(s.handleNotImplemented))
 	}
 
