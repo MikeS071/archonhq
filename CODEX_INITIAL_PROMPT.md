@@ -1,6 +1,6 @@
 # CODEX_INITIAL_PROMPT.md
 
-Build a new repository named **joulework-network**.
+Build a new repository named **archonhq**.
 
 Use this kit as the source of truth:
 - SPEC.md

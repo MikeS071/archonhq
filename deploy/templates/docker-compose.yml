@@ -49,7 +49,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ../..:/app:cached           # live code reload during dev (optional)
+      - ../..:/src:cached           # optional source mount without masking /app/api
     command: ["/app/api"]   # ← this line: run the compiled binary
 
 volumes:
