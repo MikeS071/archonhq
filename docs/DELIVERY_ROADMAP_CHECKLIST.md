@@ -1,0 +1,128 @@
+# ArchonHQ Delivery Roadmap Checklist
+
+This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md` and `docs/CODEX_MILESTONE_PROMPTS.md`.
+
+## Usage
+
+- Mark items as complete by changing `[ ]` to `[x]`.
+- Keep scope changes in this file so milestone drift is visible.
+- Do not run build/verification steps without explicit user approval.
+
+## M1 Foundation
+
+- [x] Refactor `JouleWork Network` phrasing to `ArchonHQ` (while preserving `JouleWork` economics terminology where intentional)
+- [x] Scaffold monorepo root structure (`apps/`, `services/`, `pkg/`, `integrations/`, `test/`, `scripts/`)
+- [x] Add root workspace/config files (Go, JS workspace, linting, env templates, make targets)
+- [x] Establish clean dependency boundaries from `MONOREPO_STRUCTURE.md`
+- [x] Define core domain model package skeletons in `pkg/domain`
+- [x] Implement runtime adapter harness boundary for future runtimes (Hermes is production runtime in v1)
+- [x] Implement auth shell (Clerk integration stubs and middleware boundaries)
+- [x] Wire core infra config (Postgres, NATS, Redis, S3-compatible object storage)
+- [x] Structure migrations for incremental evolution beyond `000_full_schema.sql`
+- [x] Add event store foundation (`event_records` write path + typed envelope)
+- [x] Implement API middleware for correlation IDs and idempotency keys on mutating routes
+- [x] Establish v1 guardrails in code/config/ADR (`Hermes-only` production runtime, `ledger-only` settlement, `Postgres` durable truth and `NATS` realtime fanout only)
+- [x] Add baseline observability plumbing (structured logging, tracing hooks, metrics emitter, audit stream skeleton)
+- [x] Produce required initial artifacts:
+- [x] Repo tree
+- [x] Root config files
+- [x] Migration plan
+- [x] Domain package
+- [x] Docker compose
+- [x] Package skeletons
+- [x] TODO map for milestones
+
+## M2 Core Workflows
+
+- [ ] Implement tenants and memberships flows
+- [ ] Implement onboarding modes (open, invite, approval, mixed)
+- [ ] Implement minimum RBAC roles (`platform_admin`, `tenant_admin`, `operator`, `approver`, `auditor`, `finance_viewer`, `developer`)
+- [ ] Implement workspaces flows and summaries
+- [ ] Implement nodes registration + heartbeat lifecycle
+- [ ] Implement signed node registration challenge and revocable node credentials flow
+- [ ] Implement tasks creation/feed/detail lifecycle
+- [x] Support required workload families from day one (`research.extract`, `doc.section.write`, `code.patch`, `verify.result`, `reduce.merge`, `autosearch.self_improve`)
+- [ ] Implement approvals queue + approve/deny flows
+- [ ] Implement leases create/claim/release/extend flows
+- [ ] Persist workflow events to `event_records` for each transition
+- [x] Implement API endpoint surface for core workflows under `/v1` with Clerk/node auth boundaries
+- [ ] Add projection/materializer read models (`rm_active_tasks`, `rm_approval_queue`, `rm_fleet_overview`, `rm_node_heartbeat`, `rm_task_trace`, `rm_ledger_balances`, `rm_reliability_summary`, `rm_recent_settlements`)
+- [ ] Enforce tenant isolation across all workflow paths
+
+## M3 Worker Runtime
+
+- [x] Scaffold `apps/worker-node`
+- [x] Implement Hermes adapter interface in production path
+- [ ] Implement backend policy mapping for Docker/SSH/Modal execution
+- [ ] Enforce isolated ephemeral task workspaces by default
+- [ ] Enforce no write-back to long-lived Hermes personal memory by default
+- [ ] Enforce per-lease network policies and tool grants
+- [ ] Implement artifact upload/register/download flow
+- [ ] Enforce artifact persistence by object storage reference only (no large artifact bytes in Postgres)
+- [ ] Implement signed result submission and verification hooks
+- [ ] Capture run telemetry (logs, tool calls, metrics) and persist references
+- [ ] Enforce BYOK inference-only runtime behavior for v1
+
+## M4 Economics
+
+- [ ] Implement raw JouleWork computation
+- [ ] Implement quality scoring pipeline
+- [ ] Implement reliability snapshot model and update flow
+- [ ] Implement pricing quote and rate resolution strategies
+- [ ] Implement settlement engine and ledger posting
+- [ ] Implement reserve hold creation/release lifecycle
+- [ ] Expose operator earnings and reserve summaries
+
+## M5 UI (Svelte/SvelteKit)
+
+- [ ] Scaffold Svelte app routes from `frontend/FRONTEND_ROUTE_COMPONENT_MAP.md`
+- [ ] Implement dashboard with key metric cards
+- [ ] Implement tasks list and task detail tabs
+- [ ] Implement approvals queue UI
+- [ ] Implement fleet and node detail UI
+- [ ] Implement ledger and reliability pages
+- [ ] Implement pricing and provider settings pages
+- [ ] Implement admin surfaces and role-aware guards
+
+## M6 Integrations
+
+- [ ] Implement Paperclip connector service boundary
+- [ ] Sync workspace summary projections to Paperclip surfaces
+- [ ] Sync approval queue and ticket/task projection state
+- [ ] Sync fleet heartbeat summaries
+- [ ] Sync settlement/reliability projection metrics
+- [ ] Ensure Paperclip is never used as durable source of truth
+
+## M7 Advanced Workloads
+
+- [ ] Implement code patch merge flow strategies
+- [ ] Implement bounded autosearch/self-improve workflow loop
+- [ ] Add guardrails for iteration limits, budget, and approval gates
+- [ ] Add evaluator/verifier hooks for iterative workloads
+- [ ] Add auditable experiment/result lineage views
+
+## Cross-Cutting Quality Gates
+
+- [ ] API contracts aligned to `docs/API_CONTRACTS.md` and `docs/openapi/openapi.yaml`
+- [x] Mutating API routes enforce idempotency-key semantics and emit correlation IDs
+- [x] Error envelope and codes aligned to `docs/ERROR_MODEL.md`
+- [ ] Security controls aligned to `docs/SECURITY_MODEL.md`
+- [ ] Secrets encrypted, tenant-scoped credentials enforced, and object storage namespace isolation validated
+- [ ] Observability coverage aligned to `docs/OBSERVABILITY_SPEC.md`
+- [ ] Key latency metrics implemented (`approval`, `lease`, `result submission`, `verification`, `reduction`, `settlement`)
+- [ ] Policy model aligned to `docs/POLICY_SCHEMA.md`
+- [ ] NATS subjects and consumer groups aligned to `docs/NATS_SUBJECT_MAP.md`
+- [ ] Sequence flow fidelity aligned to `docs/SEQUENCE_DIAGRAMS.md`
+- [ ] Test coverage progression aligned to `docs/TEST_PLAN.md`
+- [ ] Contract tests present for Hermes adapter and Paperclip connector
+- [ ] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
+
+## Milestone Exit Criteria
+
+- [ ] M1 exit: foundation scaffolding complete and runnable core wiring in place
+- [ ] M2 exit: task lifecycle from tenant/workspace through lease + events/projections working
+- [ ] M3 exit: worker runtime can execute, upload artifacts, and submit signed results
+- [ ] M4 exit: scoring, pricing, ledger, and reserve flows operational
+- [ ] M5 exit: Svelte operator workflows available for core operations
+- [ ] M6 exit: Paperclip projections syncing from internal source-of-truth state
+- [ ] M7 exit: advanced merge and bounded self-improvement flows operational

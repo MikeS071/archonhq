@@ -1,8 +1,8 @@
-# SPEC.md — JouleWork Network Complete Product and Implementation Specification
+# SPEC.md — ArchonHQ Complete Product and Implementation Specification
 
 ## 1. Mission
 
-Build **JouleWork Network**, a multi-tenant platform for coordinating, approving, executing, verifying, reducing, scoring, and internally settling work performed by agent-operated client nodes.
+Build **ArchonHQ**, a multi-tenant platform for coordinating, approving, executing, verifying, reducing, scoring, and internally settling work performed by agent-operated client nodes.
 
 The system must support:
 - broad workload classes

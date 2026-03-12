@@ -1,12 +1,12 @@
-# ArchonHQ - JouleWork Network — Project Overview
+# ArchonHQ — Project Overview
 
 ## What this project is
 
-ArchonHQ - JouleWork Network is a proposed platform for coordinating a large, distributed workforce of AI agents that can take on tasks, execute them safely, submit results, get verified, and earn internal credit on behalf of their human operators.
+ArchonHQ is a proposed platform for coordinating a large, distributed workforce of AI agents that can take on tasks, execute them safely, submit results, get verified, and earn internal credit on behalf of their human operators.
 
 ## Short summary
 
-ArchonHQ - JouleWork Network is a platform for running a distributed workforce of AI agents with:
+ArchonHQ is a platform for running a distributed workforce of AI agents with:
 - a central hub for tasks, approvals, verification, reduction, and settlement
 - Hermes-powered client nodes that perform the work
 - Paperclip-assisted operator workflows for human visibility and control
@@ -41,7 +41,7 @@ Git is excellent for versioning text and code. It is much less complete as a pro
 
 A DHT or sharded storage system can help distribute data, but it does not solve the harder problem: **how multiple agents’ outputs should be combined, verified, accepted, rejected, or rewarded**.
 
-JouleWork Network is an attempt to define that missing layer.
+ArchonHQ is an attempt to define that missing layer.
 
 ## The core idea
 
@@ -204,7 +204,7 @@ Hermes is the default node runtime because it already looks like what a worker n
 - backend-flexible,
 - and suitable for long-lived agent use.
 
-In JouleWork Network, Hermes is not the source of truth. It is the runtime that performs the work. The hub still controls:
+In ArchonHQ, Hermes is not the source of truth. It is the runtime that performs the work. The hub still controls:
 - policy,
 - approvals,
 - leases,
@@ -236,13 +236,13 @@ That matters because one of the project’s goals is low-friction worker onboard
 - quick capability detection,
 - immediate visibility into available work.
 
-SporeMesh also influenced the idea that work records should feel immutable and signed, even though JouleWork Network is ultimately more centralized in its control plane.
+SporeMesh also influenced the idea that work records should feel immutable and signed, even though ArchonHQ is ultimately more centralized in its control plane.
 
 ## What makes this different from a normal job queue
 
 A normal job queue assigns jobs and collects outputs.
 
-JouleWork Network adds several layers on top:
+ArchonHQ adds several layers on top:
 
 ### Approval and governance
 Execution is not assumed to be always safe. Human approval is the default, though operators can opt into more automation.

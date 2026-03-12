@@ -3,7 +3,7 @@
 ## Repo tree
 
 ```text
-joulework-network/
+archonhq/
 ├─ README.md
 ├─ SPEC.md
 ├─ MONOREPO_STRUCTURE.md

@@ -1,23 +1,20 @@
-# Build stage – use Go 1.24 (matches your go.mod requirement)
+# Build stage
 FROM golang:1.24-alpine AS builder
 
 WORKDIR /build
-
-# Optional: use a specific patch if you want stability
-# FROM golang:1.24.0-alpine AS builder   ← or 1.24-alpine3.21 etc.
 
 COPY go.mod go.sum* ./
 RUN go mod download
 
 COPY . .
 
-# Build static binary (CGO_ENABLED=0 for alpine compatibility)
-RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/api/main.go
+# Build static binary (CGO disabled for alpine compatibility)
+RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./apps/api/cmd/server
 
-# Runtime stage – keep tiny
+# Runtime stage
 FROM alpine:3.20
 
-RUN apk add --no-cache ca-certificates tzdata  # tzdata optional if using time
+RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
 COPY --from=builder /api /app/api

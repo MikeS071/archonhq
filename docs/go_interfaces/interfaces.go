@@ -37,3 +37,25 @@ type SettlementEngine interface {
 	Score(m Metering, q QualityInputs, r ReliabilitySnapshot, tier TaskTier) (ScoredResult, error)
 	Settle(scored ScoredResult, rate float64, reserveFrac float64) (Payout, error)
 }
+
+// Placeholder spec-only types so this package compiles.
+type NodeCapabilities struct{}
+type Lease struct{}
+type TaskSpec struct{}
+type RunHandle struct{}
+type RunStatus struct{}
+type ResultBundle struct{}
+type ResultClaim struct{}
+type StateRef struct{}
+type Conflict struct{}
+type Reduction struct{}
+type VerificationReport struct{}
+type MarketContext struct{}
+type PriceQuote struct{}
+type RateSnapshot struct{}
+type Metering struct{}
+type TaskTier struct{}
+type QualityInputs struct{}
+type ReliabilitySnapshot struct{}
+type ScoredResult struct{}
+type Payout struct{}

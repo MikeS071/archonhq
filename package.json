@@ -1,0 +1,12 @@
+{
+  "name": "archonhq",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.6.3",
+  "scripts": {
+    "web:dev": "echo 'apps/web scaffold pending'",
+    "web:build": "echo 'apps/web build pending'",
+    "lint": "echo 'lint scaffold pending'",
+    "test": "echo 'test scaffold pending'"
+  }
+}

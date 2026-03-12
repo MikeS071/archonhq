@@ -25,6 +25,8 @@ services:
     ports:
       - "4222:4222"
       - "8222:8222"
+    volumes:
+      - nats_data:/data
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:8222/healthz"]
       interval: 10s
@@ -36,6 +38,8 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   minio:
     image: minio/minio:RELEASE.2026-02-09T19-22-00Z
@@ -47,10 +51,12 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
+    volumes:
+      - minio_data:/data
 
   api:
     build:
-      context: ../..
+      context: .
       dockerfile: Dockerfile.api
     restart: unless-stopped
     depends_on:
@@ -82,3 +88,6 @@ services:
 
 volumes:
   postgres_data:
+  nats_data:
+  redis_data:
+  minio_data:

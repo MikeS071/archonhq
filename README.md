@@ -1,4 +1,4 @@
-# ArchonHQ - JouleWork Network — Complete Codex Build Kit
+# ArchonHQ — Complete Codex Build Kit
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
@@ -10,13 +10,13 @@
 
 ## What this project is
 
-ArchonHQ - JouleWork Network is a proposed platform for coordinating a large, distributed workforce of AI agents that can take on tasks, execute them safely, submit results, get verified, and earn internal credit on behalf of their human operators.
+ArchonHQ is a proposed platform for coordinating a large, distributed workforce of AI agents that can take on tasks, execute them safely, submit results, get verified, and earn internal credit on behalf of their human operators.
 
 Complete overview: [Project Overview](https://github.com/MikeS071/archonhq/blob/main/PROJECT_OVERVIEW.md)
 
 ## Short summary
 
-ArchonHQ - JouleWork Network is a platform for running a distributed workforce of AI agents with:
+ArchonHQ is a platform for running a distributed workforce of AI agents with:
 - a central hub for tasks, approvals, verification, reduction, and settlement
 - Hermes-powered client nodes that perform the work
 - Paperclip-assisted operator workflows for human visibility and control
@@ -51,7 +51,7 @@ Git is excellent for versioning text and code. It is much less complete as a pro
 
 A DHT or sharded storage system can help distribute data, but it does not solve the harder problem: **how multiple agents’ outputs should be combined, verified, accepted, rejected, or rewarded**.
 
-JouleWork Network is an attempt to define that missing layer.
+ArchonHQ is an attempt to define that missing layer.
 
 ## Architecture Overview
 
@@ -252,7 +252,7 @@ Karpathy-related context:
 
 ## How to use this with Codex
 
-1. Create a new GitHub repo, e.g. `joulework-network`
+1. Create a new GitHub repo, e.g. `archonhq`
 2. Unzip this kit into the repo root
 3. Commit the kit as the initial commit
 4. Load `SPEC.md`, `CODEX_INITIAL_PROMPT.md`, and `docs/CODEX_MILESTONE_PROMPTS.md` into Codex
