@@ -657,6 +657,20 @@ func (s *Server) handleCreateTaskV2(w http.ResponseWriter, r *http.Request) {
 		apierrors.Write(w, http.StatusBadRequest, "invalid_task_family", "Unsupported task family.", corrID, map[string]any{"task_family": req.TaskFamily})
 		return
 	}
+	const workspaceTenantQ = "SELECT tenant_id FROM workspaces WHERE workspace_id = $1"
+	var workspaceTenantID string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), workspaceTenantQ, req.WorkspaceID).Scan(&workspaceTenantID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			apierrors.Write(w, http.StatusNotFound, "workspace_not_found", "Workspace not found.", corrID, nil)
+			return
+		}
+		apierrors.Write(w, http.StatusInternalServerError, "workspace_lookup_failed", "Failed to validate workspace.", corrID, nil)
+		return
+	}
+	if !s.ensureTenantAccess(actor, workspaceTenantID) {
+		apierrors.Write(w, http.StatusForbidden, "forbidden", "Cross-tenant write is not allowed.", corrID, nil)
+		return
+	}
 
 	taskID := strings.TrimSpace(req.TaskID)
 	if taskID == "" {
@@ -822,6 +836,20 @@ func (s *Server) handleApproveV2(w http.ResponseWriter, r *http.Request) {
 		apierrors.Write(w, http.StatusBadRequest, "invalid_request", "approval_id format is invalid.", corrID, nil)
 		return
 	}
+	const approvalQ = "SELECT task_id, status FROM approval_requests WHERE approval_id = $1 AND tenant_id = $2"
+	var approvalStatus string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), approvalQ, approvalID, actor.TenantID).Scan(&taskID, &approvalStatus); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			apierrors.Write(w, http.StatusNotFound, "approval_not_found", "Approval not found.", corrID, nil)
+			return
+		}
+		apierrors.Write(w, http.StatusInternalServerError, "approval_lookup_failed", "Failed to fetch approval.", corrID, nil)
+		return
+	}
+	if approvalStatus != "pending" {
+		apierrors.Write(w, http.StatusConflict, "approval_not_pending", "Approval is not pending.", corrID, nil)
+		return
+	}
 
 	const updateApprovalQ = "UPDATE approval_requests SET status = $1, decided_by = $2, decided_at = $3 WHERE approval_id = $4 AND tenant_id = $5"
 	if _, err := s.postgres.DB.ExecContext(r.Context(), updateApprovalQ, "approved", actor.ID, time.Now().UTC(), approvalID, actor.TenantID); err != nil {
@@ -849,6 +877,24 @@ func (s *Server) handleDenyV2(w http.ResponseWriter, r *http.Request) {
 	}
 	approvalID := r.PathValue("approval_id")
 	taskID := taskIDFromApprovalID(approvalID)
+	if taskID == "" {
+		apierrors.Write(w, http.StatusBadRequest, "invalid_request", "approval_id format is invalid.", corrID, nil)
+		return
+	}
+	const approvalQ = "SELECT task_id, status FROM approval_requests WHERE approval_id = $1 AND tenant_id = $2"
+	var approvalStatus string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), approvalQ, approvalID, actor.TenantID).Scan(&taskID, &approvalStatus); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			apierrors.Write(w, http.StatusNotFound, "approval_not_found", "Approval not found.", corrID, nil)
+			return
+		}
+		apierrors.Write(w, http.StatusInternalServerError, "approval_lookup_failed", "Failed to fetch approval.", corrID, nil)
+		return
+	}
+	if approvalStatus != "pending" {
+		apierrors.Write(w, http.StatusConflict, "approval_not_pending", "Approval is not pending.", corrID, nil)
+		return
+	}
 	const updateApprovalQ = "UPDATE approval_requests SET status = $1, decided_by = $2, decided_at = $3 WHERE approval_id = $4 AND tenant_id = $5"
 	if _, err := s.postgres.DB.ExecContext(r.Context(), updateApprovalQ, "denied", actor.ID, time.Now().UTC(), approvalID, actor.TenantID); err != nil {
 		apierrors.Write(w, http.StatusInternalServerError, "approval_update_failed", "Failed to deny request.", corrID, nil)
@@ -888,6 +934,34 @@ func (s *Server) handleCreateLeaseV2(w http.ResponseWriter, r *http.Request) {
 	}
 	if strings.TrimSpace(req.TaskID) == "" || strings.TrimSpace(req.NodeID) == "" {
 		apierrors.Write(w, http.StatusBadRequest, "invalid_request", "task_id and node_id are required.", corrID, nil)
+		return
+	}
+	const taskLookupQ = "SELECT status FROM tasks WHERE task_id = $1 AND tenant_id = $2"
+	var taskStatus string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), taskLookupQ, req.TaskID, actor.TenantID).Scan(&taskStatus); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			apierrors.Write(w, http.StatusNotFound, "task_not_found", "Task not found.", corrID, nil)
+			return
+		}
+		apierrors.Write(w, http.StatusInternalServerError, "task_lookup_failed", "Failed to validate task.", corrID, nil)
+		return
+	}
+	if taskStatus != "approved" {
+		apierrors.Write(w, http.StatusConflict, "task_not_approved", "Task must be approved before lease creation.", corrID, nil)
+		return
+	}
+	const nodeLookupQ = "SELECT status FROM nodes WHERE node_id = $1 AND tenant_id = $2"
+	var nodeStatus string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), nodeLookupQ, req.NodeID, actor.TenantID).Scan(&nodeStatus); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			apierrors.Write(w, http.StatusNotFound, "node_not_found", "Node not found.", corrID, nil)
+			return
+		}
+		apierrors.Write(w, http.StatusInternalServerError, "node_lookup_failed", "Failed to validate node.", corrID, nil)
+		return
+	}
+	if nodeStatus != "active" {
+		apierrors.Write(w, http.StatusConflict, "node_not_active", "Node must be active before lease creation.", corrID, nil)
 		return
 	}
 	leaseID := strings.TrimSpace(req.LeaseID)
@@ -1018,14 +1092,19 @@ func (s *Server) validateNodeCredential(w http.ResponseWriter, r *http.Request, 
 		apierrors.Write(w, http.StatusUnauthorized, "unauthorized", "Node credential id is required.", corrID, nil)
 		return false
 	}
-	const q = "SELECT status FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3"
+	const q = "SELECT status, token_hash FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3"
 	var status string
-	if err := s.postgres.DB.QueryRowContext(r.Context(), q, actor.CredentialID, actor.TenantID, actor.ID).Scan(&status); err != nil {
+	var tokenHash string
+	if err := s.postgres.DB.QueryRowContext(r.Context(), q, actor.CredentialID, actor.TenantID, actor.ID).Scan(&status, &tokenHash); err != nil {
 		apierrors.Write(w, http.StatusUnauthorized, "unauthorized", "Node credential is invalid or revoked.", corrID, nil)
 		return false
 	}
 	if status != "active" {
 		apierrors.Write(w, http.StatusUnauthorized, "unauthorized", "Node credential is not active.", corrID, nil)
+		return false
+	}
+	if hashString(actor.TokenRaw) != tokenHash {
+		apierrors.Write(w, http.StatusUnauthorized, "unauthorized", "Node credential token does not match.", corrID, nil)
 		return false
 	}
 	return true

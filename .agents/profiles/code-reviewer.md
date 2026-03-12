@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Senior code review specialist. Read-only — produces structured findings report. Blocks on CRITICAL/HIGH, warns on MEDIUM.
 tools: ["Read", "Grep", "Glob", "Bash"]
-model: sonnet
+model: gpt-5.3-codex
 mode: Review
 ---
 

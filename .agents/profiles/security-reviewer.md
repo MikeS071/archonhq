@@ -2,7 +2,7 @@
 name: security-reviewer
 description: Security vulnerability detection specialist. OWASP Top 10, secrets scanning, auth verification, data protection. Read-only — produces report and verdict.
 tools: ["Read", "Bash", "Grep", "Glob"]
-model: sonnet
+model: gpt-5.3-codex
 mode: Review
 ---
 

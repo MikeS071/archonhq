@@ -48,6 +48,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] Implement API endpoint surface for core workflows under `/v1` with Clerk/node auth boundaries
 - [x] Add projection/materializer read models (`rm_active_tasks`, `rm_approval_queue`, `rm_fleet_overview`, `rm_node_heartbeat`, `rm_task_trace`, `rm_ledger_balances`, `rm_reliability_summary`, `rm_recent_settlements`)
 - [x] Enforce tenant isolation across all workflow paths
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## M3 Worker Runtime
 
@@ -62,6 +63,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Implement signed result submission and verification hooks
 - [ ] Capture run telemetry (logs, tool calls, metrics) and persist references
 - [ ] Enforce BYOK inference-only runtime behavior for v1
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## M4 Economics
 
@@ -72,6 +74,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Implement settlement engine and ledger posting
 - [ ] Implement reserve hold creation/release lifecycle
 - [ ] Expose operator earnings and reserve summaries
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## M5 UI (Svelte/SvelteKit)
 
@@ -83,6 +86,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Implement ledger and reliability pages
 - [ ] Implement pricing and provider settings pages
 - [ ] Implement admin surfaces and role-aware guards
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## M6 Integrations
 
@@ -92,6 +96,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Sync fleet heartbeat summaries
 - [ ] Sync settlement/reliability projection metrics
 - [ ] Ensure Paperclip is never used as durable source of truth
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## M7 Advanced Workloads
 
@@ -100,6 +105,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Add guardrails for iteration limits, budget, and approval gates
 - [ ] Add evaluator/verifier hooks for iterative workloads
 - [ ] Add auditable experiment/result lineage views
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## Cross-Cutting Quality Gates
 
@@ -113,9 +119,10 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Policy model aligned to `docs/POLICY_SCHEMA.md`
 - [ ] NATS subjects and consumer groups aligned to `docs/NATS_SUBJECT_MAP.md`
 - [ ] Sequence flow fidelity aligned to `docs/SEQUENCE_DIAGRAMS.md`
-- [ ] Test coverage progression aligned to `docs/TEST_PLAN.md`
+- [x] Test coverage progression aligned to `docs/TEST_PLAN.md`
 - [ ] Contract tests present for Hermes adapter and Paperclip connector
-- [ ] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
+- [x] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## Milestone Exit Criteria
 
@@ -126,3 +133,4 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] M5 exit: Svelte operator workflows available for core operations
 - [ ] M6 exit: Paperclip projections syncing from internal source-of-truth state
 - [ ] M7 exit: advanced merge and bounded self-improvement flows operational
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase

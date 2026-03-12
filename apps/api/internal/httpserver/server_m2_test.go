@@ -182,7 +182,9 @@ func TestNodeRegistrationAndHeartbeatFlow(t *testing.T) {
 		t.Fatalf("expected node_token in response")
 	}
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT status FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).WithArgs(sqlmock.AnyArg(), "ten_01", "node_01").WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("active"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT status, token_hash FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).
+		WithArgs(sqlmock.AnyArg(), "ten_01", "node_01").
+		WillReturnRows(sqlmock.NewRows([]string{"status", "token_hash"}).AddRow("active", hashString(nodeToken)))
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE nodes SET last_heartbeat_at = $1 WHERE node_id = $2 AND tenant_id = $3")).WithArgs(sqlmock.AnyArg(), "node_01", "ten_01").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	heartbeat := newJSONRequest(t, http.MethodPost, "/v1/nodes/node_01/heartbeat", nodeToken, "idem_hb_1", map[string]any{})
@@ -209,6 +211,8 @@ func TestTaskApprovalLeaseLifecycle(t *testing.T) {
 
 	now := time.Now().UTC()
 
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT tenant_id FROM workspaces WHERE workspace_id = $1")).WithArgs("ws_01").
+		WillReturnRows(sqlmock.NewRows([]string{"tenant_id"}).AddRow("ten_01"))
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO tasks")).WithArgs("task_01", "ten_01", "ws_01", "research.extract", "Collect signals", "", "awaiting_approval", sqlmock.AnyArg(), "always_required", "user_admin").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO approval_requests")).WithArgs("apr_01", "ten_01", "task_01", "pending", "user_admin").WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -226,6 +230,8 @@ func TestTaskApprovalLeaseLifecycle(t *testing.T) {
 		t.Fatalf("create task expected 200 got %d body=%s", rrTask.Code, rrTask.Body.String())
 	}
 
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT task_id, status FROM approval_requests WHERE approval_id = $1 AND tenant_id = $2")).WithArgs("apr_01", "ten_01").
+		WillReturnRows(sqlmock.NewRows([]string{"task_id", "status"}).AddRow("task_01", "pending"))
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE approval_requests SET status = $1, decided_by = $2, decided_at = $3 WHERE approval_id = $4 AND tenant_id = $5")).WithArgs("approved", "user_admin", sqlmock.AnyArg(), "apr_01", "ten_01").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE tasks SET status = $1 WHERE task_id = $2 AND tenant_id = $3")).WithArgs("approved", "task_01", "ten_01").WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -236,6 +242,10 @@ func TestTaskApprovalLeaseLifecycle(t *testing.T) {
 		t.Fatalf("approve expected 200 got %d body=%s", rrApprove.Code, rrApprove.Body.String())
 	}
 
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT status FROM tasks WHERE task_id = $1 AND tenant_id = $2")).WithArgs("task_01", "ten_01").
+		WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("approved"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT status FROM nodes WHERE node_id = $1 AND tenant_id = $2")).WithArgs("node_01", "ten_01").
+		WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("active"))
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO leases")).WithArgs("lease_01", "ten_01", "task_01", "node_01", 1, "granted", "approved", sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	createLease := newJSONRequest(t, http.MethodPost, "/v1/leases", "human:ten_01:user_admin:tenant_admin,operator,approver", "idem_lease_1", map[string]any{
@@ -251,7 +261,8 @@ func TestTaskApprovalLeaseLifecycle(t *testing.T) {
 		t.Fatalf("create lease expected 200 got %d body=%s", rrCreateLease.Code, rrCreateLease.Body.String())
 	}
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT status FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).WithArgs("cred_01", "ten_01", "node_01").WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("active"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT status, token_hash FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).WithArgs("cred_01", "ten_01", "node_01").
+		WillReturnRows(sqlmock.NewRows([]string{"status", "token_hash"}).AddRow("active", hashString("node:ten_01:node_01:cred_01")))
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE leases SET status = $1 WHERE lease_id = $2 AND node_id = $3 AND tenant_id = $4")).WithArgs("claimed", "lease_01", "node_01", "ten_01").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	claim := newJSONRequest(t, http.MethodPost, "/v1/leases/lease_01/claim", "node:ten_01:node_01:cred_01", "idem_claim_1", map[string]any{})
@@ -261,7 +272,8 @@ func TestTaskApprovalLeaseLifecycle(t *testing.T) {
 		t.Fatalf("claim expected 200 got %d body=%s", rrClaim.Code, rrClaim.Body.String())
 	}
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT status FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).WithArgs("cred_01", "ten_01", "node_01").WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("active"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT status, token_hash FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).WithArgs("cred_01", "ten_01", "node_01").
+		WillReturnRows(sqlmock.NewRows([]string{"status", "token_hash"}).AddRow("active", hashString("node:ten_01:node_01:cred_01")))
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE leases SET status = $1 WHERE lease_id = $2 AND node_id = $3 AND tenant_id = $4")).WithArgs("released", "lease_01", "node_01", "ten_01").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	release := newJSONRequest(t, http.MethodPost, "/v1/leases/lease_01/release", "node:ten_01:node_01:cred_01", "idem_release_1", map[string]any{})
@@ -271,7 +283,8 @@ func TestTaskApprovalLeaseLifecycle(t *testing.T) {
 		t.Fatalf("release expected 200 got %d body=%s", rrRelease.Code, rrRelease.Body.String())
 	}
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT status FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).WithArgs("cred_01", "ten_01", "node_01").WillReturnRows(sqlmock.NewRows([]string{"status"}).AddRow("active"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT status, token_hash FROM node_credentials WHERE credential_id = $1 AND tenant_id = $2 AND node_id = $3")).WithArgs("cred_01", "ten_01", "node_01").
+		WillReturnRows(sqlmock.NewRows([]string{"status", "token_hash"}).AddRow("active", hashString("node:ten_01:node_01:cred_01")))
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE leases SET expires_at = $1 WHERE lease_id = $2 AND node_id = $3 AND tenant_id = $4")).WithArgs(sqlmock.AnyArg(), "lease_01", "node_01", "ten_01").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	extend := newJSONRequest(t, http.MethodPost, "/v1/leases/lease_01/extend", "node:ten_01:node_01:cred_01", "idem_extend_1", map[string]any{

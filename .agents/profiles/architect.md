@@ -2,7 +2,7 @@
 name: architect
 description: Software architecture specialist. Produces ADRs and design docs — never writes implementation code. Read-only analysis and recommendation.
 tools: ["Read", "Grep", "Glob"]
-model: sonnet
+model: gpt-5.3-codex
 mode: Research
 ---
 

@@ -2,7 +2,7 @@
 name: python-reviewer
 description: Python code review specialist. PEP 8, Pythonic idioms, type hints, security, performance. Read-only — produces report and verdict.
 tools: ["Read", "Grep", "Glob", "Bash"]
-model: sonnet
+model: gpt-5.3-codex
 mode: Review
 ---
 

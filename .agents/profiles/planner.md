@@ -2,7 +2,7 @@
 name: planner
 description: Planning specialist for features and refactoring. Creates detailed, phased implementation plans with exact file paths, dependencies, risks, and testing strategy. Read-only — produces plans, never writes code.
 tools: ["Read", "Grep", "Glob"]
-model: sonnet
+model: gpt-5.3-codex
 mode: Research
 ---
 

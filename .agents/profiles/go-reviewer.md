@@ -2,7 +2,7 @@
 name: go-reviewer
 description: Go code review specialist. Idiomatic Go, concurrency patterns, error handling, and performance. Read-only — produces report and verdict.
 tools: ["Read", "Grep", "Glob", "Bash"]
-model: sonnet
+model: gpt-5.3-codex
 mode: Review
 ---
 
