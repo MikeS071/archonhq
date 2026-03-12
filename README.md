@@ -121,7 +121,7 @@ curl http://localhost:8080/health
 
 ### Expected output:
 ```text
-textOK - ArchonHQ API healthy
+OK - ArchonHQ API healthy
 DB connected: postgres://archon:devpassword@postgres:5432/archonhq?sslmode=disable
 NATS connected: nats://nats:4222
 Other useful endpoints / views:
