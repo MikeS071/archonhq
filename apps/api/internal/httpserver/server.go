@@ -100,15 +100,27 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /v1/results/{result_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetResultV2)))
 	mux.Handle("GET /v1/tasks/{task_id}/results", auth.RequireHuman(http.HandlerFunc(s.handleTaskResultsV2)))
 
+	mux.Handle("GET /v1/reliability/subjects/{subject_type}/{subject_id}", auth.RequireHuman(http.HandlerFunc(s.handleReliabilitySubjectV2)))
+	mux.Handle("GET /v1/operators/{operator_id}/reliability", auth.RequireHuman(http.HandlerFunc(s.handleOperatorReliabilityV2)))
+
+	mux.Handle("POST /v1/pricing/quote", auth.RequireHuman(http.HandlerFunc(s.handlePricingQuoteV2)))
+	mux.Handle("GET /v1/pricing/rate-cards", auth.RequireHuman(http.HandlerFunc(s.handlePricingRateCardsV2)))
+	mux.Handle("POST /v1/pricing/bids", auth.RequireHuman(http.HandlerFunc(s.handlePricingBidsV2)))
+
+	mux.Handle("GET /v1/ledger/accounts/{account_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetLedgerAccountV2)))
+	mux.Handle("GET /v1/ledger/accounts/{account_id}/entries", auth.RequireHuman(http.HandlerFunc(s.handleGetLedgerAccountEntriesV2)))
+	mux.Handle("GET /v1/operators/{operator_id}/earnings-summary", auth.RequireHuman(http.HandlerFunc(s.handleOperatorEarningsSummaryV2)))
+	mux.Handle("GET /v1/operators/{operator_id}/reserve-holds", auth.RequireHuman(http.HandlerFunc(s.handleOperatorReserveHoldsV2)))
+	mux.Handle("POST /v1/ledger/settlements", auth.RequireHuman(http.HandlerFunc(s.handlePostSettlementV2)))
+	mux.Handle("POST /v1/reserve-holds/{reserve_hold_id}/release", auth.RequireHuman(http.HandlerFunc(s.handleReleaseReserveHoldV2)))
+
 	// API contract placeholders.
 	for _, route := range []string{
 		"POST /v1/tasks/{task_id}/decompose",
 		"POST /v1/approvals/{approval_id}/auto-mode",
 		"POST /v1/verifications", "GET /v1/verifications/{verification_id}", "GET /v1/results/{result_id}/verifications",
 		"POST /v1/reductions", "GET /v1/reductions/{reduction_id}",
-		"GET /v1/reliability/subjects/{subject_type}/{subject_id}", "GET /v1/operators/{operator_id}/reliability",
-		"POST /v1/pricing/quote", "GET /v1/pricing/rate-cards", "POST /v1/pricing/bids", "GET /v1/tasks/{task_id}/market",
-		"GET /v1/ledger/accounts/{account_id}", "GET /v1/ledger/accounts/{account_id}/entries", "GET /v1/operators/{operator_id}/earnings-summary", "GET /v1/operators/{operator_id}/reserve-holds",
+		"GET /v1/tasks/{task_id}/market",
 		"GET /v1/policies", "POST /v1/policies", "PATCH /v1/policies/{policy_id}",
 		"POST /v1/integrations/paperclip/sync", "GET /v1/integrations/paperclip/status",
 	} {

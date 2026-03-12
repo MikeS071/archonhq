@@ -43,7 +43,7 @@ func TestServerMiscHandlersAndMiddleware(t *testing.T) {
 		t.Fatalf("legacy create task expected 200 got %d body=%s", rrLegacyCreate.Code, rrLegacyCreate.Body.String())
 	}
 
-	notImpl := httptest.NewRequest(http.MethodGet, "/v1/pricing/rate-cards", nil)
+	notImpl := httptest.NewRequest(http.MethodGet, "/v1/verifications/ver_01", nil)
 	rrNotImpl := httptest.NewRecorder()
 	h.ServeHTTP(rrNotImpl, notImpl)
 	if rrNotImpl.Code != http.StatusNotImplemented {

@@ -67,14 +67,14 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## M4 Economics
 
-- [ ] Implement raw JouleWork computation
-- [ ] Implement quality scoring pipeline
-- [ ] Implement reliability snapshot model and update flow
-- [ ] Implement pricing quote and rate resolution strategies
-- [ ] Implement settlement engine and ledger posting
-- [ ] Implement reserve hold creation/release lifecycle
-- [ ] Expose operator earnings and reserve summaries
-- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+- [x] Implement raw JouleWork computation
+- [x] Implement quality scoring pipeline
+- [x] Implement reliability snapshot model and update flow
+- [x] Implement pricing quote and rate resolution strategies
+- [x] Implement settlement engine and ledger posting
+- [x] Implement reserve hold creation/release lifecycle
+- [x] Expose operator earnings and reserve summaries
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## M5 UI (Svelte/SvelteKit)
 
@@ -129,7 +129,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] M1 exit: foundation scaffolding complete and runnable core wiring in place
 - [x] M2 exit: task lifecycle from tenant/workspace through lease + events/projections working
 - [x] M3 exit: worker runtime can execute, upload artifacts, and submit signed results
-- [ ] M4 exit: scoring, pricing, ledger, and reserve flows operational
+- [x] M4 exit: scoring, pricing, ledger, and reserve flows operational
 - [ ] M5 exit: Svelte operator workflows available for core operations
 - [ ] M6 exit: Paperclip projections syncing from internal source-of-truth state
 - [ ] M7 exit: advanced merge and bounded self-improvement flows operational
