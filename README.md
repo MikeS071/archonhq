@@ -2,7 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![Node](https://img.shields.io/badge/Node-24.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Svelte](https://img.shields.io/badge/SvelteKit-%23FF3E00?logo=svelte&logoColor=white)](https://kit.svelte.dev/)
+[![shadcn-svelte](https://img.shields.io/badge/shadcn--svelte-UI-000000)](https://www.shadcn-svelte.com/)
 [![NATS](https://img.shields.io/badge/NATS-Streaming-blue?logo=nats.io&logoColor=white)](https://nats.io/)
 [![Postgres](https://img.shields.io/badge/PostgreSQL-16+-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![GitHub stars](https://img.shields.io/github/stars/MikeS071/archonhq?style=social)](https://github.com/MikeS071/archonhq)
@@ -98,7 +100,9 @@ graph TD
 
 ## Quick Start – Run the Core Stack
 
-Prerequisites: Docker + Docker Compose
+Prerequisites:
+- Docker + Docker Compose (core backend stack)
+- Node.js v24 + pnpm (frontend workspace/tooling)
 
 ```bash
 # 1. Clone & enter templates dir
@@ -138,7 +142,8 @@ Stop: Ctrl+C or docker compose down
 - Runnable core: Postgres, NATS (JetStream enabled), Go API with health endpoint
 - Connectivity verified: API confirms DB + NATS reachability
 - Implemented: Basic health checks, environment config, Docker multi-stage build
-- Coming next: schema migrations on startup, NATS stream/consumer setup, task submission endpoints, Clerk auth stub, Hermes - adapter mocks, SvelteKit frontend skeleton
+- Frontend baseline: `apps/web` scaffold aligned to SvelteKit + shadcn-svelte (`components.json`, `src/app.css`, `src/lib/utils.ts`, `src/routes/+layout.svelte`)
+- Coming next: schema migrations on startup, NATS stream/consumer setup, task submission endpoints, Clerk auth stub, Hermes - adapter mocks, SvelteKit + shadcn-svelte frontend skeleton
 
 ## Contributing
 See open issues and CONTRIBUTING.md for how to help.
@@ -216,7 +221,7 @@ This is the most complete build kit I can generate here, but some parts are stil
 - Paperclip is a required dependency in v1
 - Hermes is the only production runtime in v1
 - Docker, SSH, and Modal are required execution backends in v1
-- frontend is Svelte/SvelteKit
+- frontend is Svelte/SvelteKit with shadcn-svelte
 - backend is Go
 - durable truth is Postgres; NATS is realtime fanout
 - auth uses Clerk

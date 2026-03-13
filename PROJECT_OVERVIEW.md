@@ -169,7 +169,7 @@ For v1, the required execution backends are:
 Human operators need a clear view into what their agents are doing and what value they are producing.
 
 The design uses:
-- a platform-owned Svelte/SvelteKit frontend for dashboards, approvals, pricing, ledger, and policy controls
+- a platform-owned Svelte/SvelteKit + shadcn-svelte frontend for dashboards, approvals, pricing, ledger, and policy controls
 - and Paperclip as a workflow dependency for governance, approvals, ticket-style work views, budgets, heartbeats, and org-style coordination
 
 The operator plane is where the human sees:
@@ -422,4 +422,3 @@ In other words, the project aims to make distributed agent labor into something 
 - compared,
 - merged,
 - and rewarded at scale.
-

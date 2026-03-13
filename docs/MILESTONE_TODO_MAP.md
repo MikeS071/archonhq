@@ -29,7 +29,7 @@
 
 ## M5 UI
 
-- Svelte routes and dashboard pages
+- Svelte + shadcn-svelte routes and dashboard pages
 - Task trace, approvals, fleet, ledger, reliability
 
 ## M6 Integrations

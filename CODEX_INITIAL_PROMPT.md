@@ -46,7 +46,7 @@ Implement worker-node, Hermes adapter, Docker/SSH/Modal execution, artifacts, re
 Implement JouleWork, quality scoring, reliability snapshots, pricing, ledger, reserves.
 
 ### M5 UI
-Implement Svelte dashboards for tasks, approvals, fleet, ledger, reliability, settings.
+Implement Svelte + shadcn-svelte dashboards for tasks, approvals, fleet, ledger, reliability, settings.
 
 ### M6 Integrations
 Implement Paperclip connector and projected workflow state.
@@ -57,7 +57,7 @@ Implement code patch merge flows and autosearch self-improve bounded loops.
 ## Non-negotiable rules
 
 1. Keep multi-tenancy.
-2. Use Svelte, not React.
+2. Use Svelte + shadcn-svelte, not React.
 3. Keep Paperclip as required dependency/integration target.
 4. Keep Hermes as only production runtime in v1.
 5. Postgres is durable truth; NATS is realtime only.

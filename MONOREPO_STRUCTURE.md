@@ -23,6 +23,9 @@ archonhq/
 ├─ apps/
 │  ├─ api/
 │  ├─ web/
+│  │  ├─ package.json
+│  │  ├─ components.json
+│  │  └─ src/
 │  ├─ worker-node/
 │  └─ admin-cli/
 ├─ services/

@@ -19,11 +19,11 @@ This project is still in early alpha / specification stage. Contributions are ve
    - Use Codex / similar LLMs to generate milestone code/docs from prompts.
    - Commit specs → stubs → tests incrementally.
    - Update ADRs when decisions change.
-   - Keep monorepo structure: hub (Go), frontend (Svelte), docs/specs.
+   - Keep monorepo structure: hub (Go), frontend (Svelte + shadcn-svelte), docs/specs.
 
 4. **Commit style** — Conventional-ish: `feat: add X`, `docs: update README`, `fix: mermaid parse error`, etc. (not strict).
 
-5. **Code style** — Follow Go standard (gofmt), SvelteKit defaults. Run linters if/when added.
+5. **Code style** — Follow Go standard (gofmt), SvelteKit + shadcn-svelte conventions, and Node.js v24 runtime compatibility. Run linters if/when added.
 
 ## Pull Requests
 

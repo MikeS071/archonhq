@@ -76,9 +76,10 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] Expose operator earnings and reserve summaries
 - [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
-## M5 UI (Svelte/SvelteKit)
+## M5 UI (Svelte/SvelteKit + shadcn-svelte)
 
-- [ ] Scaffold Svelte app routes from `frontend/FRONTEND_ROUTE_COMPONENT_MAP.md`
+- [ ] For frontend UI use the shadcn-svelte kit (https://www.shadcn-svelte.com/llms.txt)
+- [ ] Scaffold Svelte + shadcn-svelte app routes from `frontend/FRONTEND_ROUTE_COMPONENT_MAP.md`
 - [ ] Implement dashboard with key metric cards
 - [ ] Implement tasks list and task detail tabs
 - [ ] Implement approvals queue UI

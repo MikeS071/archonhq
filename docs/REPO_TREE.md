@@ -7,6 +7,9 @@ archonhq/
 │  │  ├─ cmd/server/main.go
 │  │  └─ internal/httpserver/server.go
 │  ├─ web/
+│  │  ├─ package.json
+│  │  ├─ components.json
+│  │  └─ src/
 │  ├─ worker-node/
 │  └─ admin-cli/
 ├─ services/

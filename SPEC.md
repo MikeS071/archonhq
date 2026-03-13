@@ -34,7 +34,7 @@ The system must support:
 
 ### 2.3 Major technical choices
 - Backend: Go
-- Frontend: Svelte / SvelteKit
+- Frontend: Svelte / SvelteKit / shadcn-svelte
 - Human auth: Clerk
 - Durable store: Postgres
 - Event fanout/realtime: NATS
@@ -62,7 +62,7 @@ The system must support:
 9. Hermes is the only production runtime in v1.
 10. Adapter harness must exist for future runtimes.
 11. Docker, SSH, Modal are required backends.
-12. Frontend uses Svelte.
+12. Frontend uses Svelte + shadcn-svelte.
 13. Durable truth uses Postgres; NATS is fanout/realtime only.
 14. Human auth uses Clerk.
 15. Sensitive/private data is supported by default.

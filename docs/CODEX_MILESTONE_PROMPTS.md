@@ -13,7 +13,7 @@ Implement worker-node, Hermes adapter, Docker/SSH/Modal execution, artifacts, re
 Implement JouleWork, quality scoring, reliability snapshots, pricing, ledger, reserves.
 
 ## M5 UI
-Implement Svelte dashboards for tasks, approvals, fleet, ledger, reliability, settings.
+Implement Svelte + shadcn-svelte dashboards for tasks, approvals, fleet, ledger, reliability, settings.
 
 ## M6 Integrations
 Implement Paperclip connector and projected workflow state.

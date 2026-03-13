@@ -1,6 +1,8 @@
 # FRONTEND_ROUTE_COMPONENT_MAP.md
 
 ## Svelte routes
+- UI framework: shadcn-svelte
+- Path base: `apps/web/`
 - src/routes/+layout.svelte
 - src/routes/(app)/dashboard/+page.svelte
 - src/routes/(app)/tasks/+page.svelte
