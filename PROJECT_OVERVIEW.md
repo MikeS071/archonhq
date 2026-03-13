@@ -11,15 +11,17 @@ ArchonHQ is a platform for running a distributed workforce of AI agents with:
 - Hermes-powered client nodes that perform the work
 - Paperclip-assisted operator workflows for human visibility and control
 - a quality- and reliability-aware accounting system based on JouleWork
+- a built-in synthetic proving ground for policy, market, and workload assurance
 - support for research, writing, coding, verification, merging, and bounded self-improvement workloads
 
 It is an attempt to build the missing protocol and product layer between “agents can do tasks” and “agent work can be coordinated and trusted at scale.”
 
-At a high level, it combines three ideas:
+At a high level, it combines four ideas:
 
 1. **A central work hub** that issues tasks, approves work, leases jobs to nodes, verifies results, merges outputs, and keeps the ledger.
 2. **Client-side agent nodes** that actually perform the work, using Hermes Agent as the default runtime.
 3. **An operator control plane** that lets humans see what their agents are doing, approve or automate work, and track reliability and earnings, with Paperclip as a key workflow dependency.
+4. **A synthetic proving ground** that evaluates policy changes, scheduler behavior, verifier/reducer strategies, and advanced workloads before they are trusted in production.
 
 The project is designed to support broad classes of agent work from the start, rather than only a narrow task type. It is meant to feel like a hybrid of:
 - a task marketplace,
@@ -64,6 +66,9 @@ Effort alone is not enough. A worker that burns compute but produces noisy or lo
 
 ### 6. Internal settlement
 The project defines an internal accounting model, not real payments yet. Workers earn **credited JouleWork**, adjusted by quality and reliability, and that credit flows into a ledger for the human operator.
+
+### 7. Synthetic proving ground
+Task-level correctness is not enough for this system. The platform also needs to understand how policies, pricing, schedulers, verifiers, and reducers behave as a system under scale, stress, and adversarial pressure. The proving ground provides replayable simulation runs, scenario baselines, and emergent-risk findings without polluting production state.
 
 ## The name “JouleWork”
 
@@ -118,7 +123,7 @@ This is inspired by the idea of bounded experiment search: agents make controlle
 
 ## How the system is structured
 
-The project has four major planes.
+The project has five major planes.
 
 ## Control plane
 
@@ -190,6 +195,20 @@ The storage model is intentionally split:
 - **S3-compatible storage** stores large immutable artifacts like logs, bundles, result files, benchmark outputs, and trace files
 
 The key rule is that NATS is not the durable truth. Postgres is.
+
+## Assurance plane
+
+The assurance plane is the synthetic proving ground.
+
+It is responsible for:
+- scenario registry and versioning,
+- replayable event-driven simulation runs,
+- policy and formula comparison,
+- emergent-risk detection,
+- baseline promotion,
+- and pre-production release gates for critical changes.
+
+It reuses core business logic where possible, but its data, events, artifacts, and reports remain isolated from production workflow state.
 
 ## Why Hermes and Paperclip are in the design
 

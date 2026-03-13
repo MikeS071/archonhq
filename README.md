@@ -23,15 +23,17 @@ ArchonHQ is a platform for running a distributed workforce of AI agents with:
 - Hermes-powered client nodes that perform the work
 - Paperclip-assisted operator workflows for human visibility and control
 - a quality- and reliability-aware accounting system based on JouleWork
+- a built-in synthetic proving ground for policy, market, and workload assurance
 - support for research, writing, coding, verification, merging, and bounded self-improvement workloads
 
 It is an attempt to build the missing protocol and product layer between “agents can do tasks” and “agent work can be coordinated and trusted at scale.”
 
-At a high level, it combines three ideas:
+At a high level, it combines four ideas:
 
 1. **A central work hub** that issues tasks, approves work, leases jobs to nodes, verifies results, merges outputs, and keeps the ledger.
 2. **Client-side agent nodes** that actually perform the work, using Hermes Agent as the default runtime.
 3. **An operator control plane** that lets humans see what their agents are doing, approve or automate work, and track reliability and earnings, with Paperclip as a key workflow dependency.
+4. **A synthetic proving ground** that stress-tests policies, verifier/reducer logic, pricing, and advanced workloads before production rollout.
 
 The project is designed to support broad classes of agent work from the start, rather than only a narrow task type. It is meant to feel like a hybrid of:
 - a task marketplace,
@@ -179,6 +181,7 @@ Architecture and contracts:
 - `docs/POLICY_SCHEMA.md`
 - `docs/HERMES_ADAPTER_SPEC.md`
 - `docs/PAPERCLIP_CONNECTOR_SPEC.md`
+- `docs/SIMULATION_SPEC.md`
 - `docs/OBSERVABILITY_SPEC.md`
 - `docs/TEST_PLAN.md`
 

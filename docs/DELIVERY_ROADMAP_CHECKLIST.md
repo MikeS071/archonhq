@@ -107,6 +107,22 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Add guardrails for iteration limits, budget, and approval gates
 - [ ] Add evaluator/verifier hooks for iterative workloads
 - [ ] Add auditable experiment/result lineage views
+- [ ] Add simulation entry points for advanced workload policy and benchmark testing
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+
+## M8 Simulation and Assurance
+
+- [x] Complete M8 prep artifacts (`docs/SIMULATION_SPEC.md`, `docs/openapi/openapi.yaml`, `docs/M8_MIGRATION_SPEC.md`, `services/simulation/README.md`)
+- [ ] Add `services/simulation` service boundary and scenario registry
+- [ ] Implement dedicated simulation tables, read models, and event family
+- [ ] Implement replayable event-driven runs with fixed-seed support
+- [ ] Implement deterministic stub mode for CI and policy regression
+- [ ] Implement sampled synthetic mode for market and queue stress tests
+- [ ] Add required v1 scenarios (`scheduler_starvation_v1`, `verifier_collusion_v1`, `reducer_instability_v1`, `market_spam_attack_v1`, `approval_backlog_v1`, `research_false_consensus_v1`, `code_patch_merge_storm_v1`, `autosearch_reward_hacking_v1`, `incident_replay_v1`)
+- [ ] Implement baseline promotion and metric diffing
+- [ ] Implement findings generation and risk heatmaps
+- [ ] Add simulation dashboards and operator views
+- [ ] Gate verifier/reducer/scheduler/pricing/reliability policy changes on simulation comparison
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## Cross-Cutting Quality Gates
@@ -118,12 +134,15 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Secrets encrypted, tenant-scoped credentials enforced, and object storage namespace isolation validated
 - [ ] Observability coverage aligned to `docs/OBSERVABILITY_SPEC.md`
 - [ ] Key latency metrics implemented (`approval`, `lease`, `result submission`, `verification`, `reduction`, `settlement`)
+- [ ] Emergent-risk metrics implemented (`verifier disagreement`, `false accept penetration`, `reducer stability`, `queue amplification`, `scheduler starvation`, `market concentration`, `approval escape`)
 - [ ] Policy model aligned to `docs/POLICY_SCHEMA.md`
 - [ ] NATS subjects and consumer groups aligned to `docs/NATS_SUBJECT_MAP.md`
 - [ ] Sequence flow fidelity aligned to `docs/SEQUENCE_DIAGRAMS.md`
 - [x] Test coverage progression aligned to `docs/TEST_PLAN.md`
 - [ ] Contract tests present for Hermes adapter and Paperclip connector
+- [ ] Contract tests present for simulation registry and run APIs
 - [x] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
+- [ ] Replay approval enforcement and simulation namespace isolation validated
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## Milestone Exit Criteria
@@ -135,4 +154,5 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] M5 exit: Svelte operator workflows available for core operations
 - [ ] M6 exit: Paperclip projections syncing from internal source-of-truth state
 - [ ] M7 exit: advanced merge and bounded self-improvement flows operational
+- [ ] M8 exit: simulation scenarios, replayable runs, baseline comparisons, and policy gates operational
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase

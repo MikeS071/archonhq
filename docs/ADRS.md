@@ -14,3 +14,6 @@ Sensitive/private work and trust concerns require human approval by default.
 
 ## ADR-005 Ledger-only v1
 Keep internal accounting now, leave payout rails abstracted for later.
+
+## ADR-006 Built-in synthetic proving ground
+Critical policy, verifier, reducer, scheduler, and economics changes require isolated simulation and replay before broader production rollout.

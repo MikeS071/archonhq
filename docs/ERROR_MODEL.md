@@ -27,6 +27,11 @@
 - policy_violation
 - artifact_not_found
 - verification_failed
+- simulation_not_found
+- simulation_run_failed
+- simulation_replay_requires_approval
+- simulation_budget_exceeded
+- simulation_isolation_violation
 - insufficient_budget
 - invalid_signature
 - node_registration_failed

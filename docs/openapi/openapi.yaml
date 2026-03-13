@@ -14,16 +14,85 @@ components:
       type: http
       scheme: bearer
       bearerFormat: NodeToken
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+    ScenarioId:
+      in: path
+      name: scenario_id
+      required: true
+      schema:
+        type: string
+    RunId:
+      in: path
+      name: run_id
+      required: true
+      schema:
+        type: string
+    BaselineId:
+      in: path
+      name: baseline_id
+      required: true
+      schema:
+        type: string
+    ReplayId:
+      in: path
+      name: replay_id
+      required: true
+      schema:
+        type: string
+    Limit:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 50
   schemas:
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+            correlation_id:
+              type: string
     TaskSpec:
       type: object
-      required: [workspace_id, task_family, title]
+      required:
+        - workspace_id
+        - task_family
+        - title
       properties:
         workspace_id:
           type: string
         task_family:
           type: string
-          enum: [research.extract, doc.section.write, code.patch, verify.result, reduce.merge, autosearch.self_improve]
+          enum:
+            - research.extract
+            - doc.section.write
+            - code.patch
+            - verify.result
+            - reduce.merge
+            - autosearch.self_improve
         title:
           type: string
         description:
@@ -34,40 +103,1029 @@ components:
             type: string
     ResultClaim:
       type: object
-      required: [result_id, task_id, lease_id]
+      required:
+        - result_id
+        - task_id
+        - lease_id
       properties:
-        result_id: {type: string}
-        task_id: {type: string}
-        lease_id: {type: string}
+        result_id:
+          type: string
+        task_id:
+          type: string
+        lease_id:
+          type: string
         output_refs:
           type: array
-          items: {type: string}
+          items:
+            type: string
+    SimulationScenario:
+      type: object
+      required:
+        - scenario_id
+        - scope
+        - name
+        - status
+        - owner_id
+        - created_at
+      properties:
+        scenario_id:
+          type: string
+        tenant_id:
+          type: string
+          nullable: true
+        scope:
+          type: string
+          enum:
+            - platform
+            - tenant
+        name:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+            - published
+            - archived
+        owner_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    SimulationScenarioVersion:
+      type: object
+      required:
+        - scenario_version_id
+        - scenario_id
+        - version
+        - definition_json
+        - seed_strategy
+        - runtime_mode_allowlist
+      properties:
+        scenario_version_id:
+          type: string
+        scenario_id:
+          type: string
+        version:
+          type: integer
+        definition_json:
+          type: object
+          additionalProperties: true
+        seed_strategy:
+          type: string
+        runtime_mode_allowlist:
+          type: array
+          items:
+            type: string
+            enum:
+              - deterministic_stub
+              - sampled_synthetic
+              - runtime_backed
+        success_criteria_json:
+          type: object
+          additionalProperties: true
+        failure_thresholds_json:
+          type: object
+          additionalProperties: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+    SimulationRun:
+      type: object
+      required:
+        - run_id
+        - scenario_version_id
+        - status
+        - run_mode
+        - seed
+        - started_by
+        - started_at
+      properties:
+        run_id:
+          type: string
+        tenant_id:
+          type: string
+          nullable: true
+        scenario_version_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - requested
+            - running
+            - completed
+            - failed
+            - cancelled
+        run_mode:
+          type: string
+          enum:
+            - deterministic_stub
+            - sampled_synthetic
+            - runtime_backed
+        seed:
+          type: string
+        started_by:
+          type: string
+        budget_limit_jw:
+          type: number
+          nullable: true
+        budget_limit_usd:
+          type: number
+          nullable: true
+        time_limit_sec:
+          type: integer
+          nullable: true
+        candidate_policy_json:
+          type: object
+          additionalProperties: true
+          nullable: true
+        candidate_formula_json:
+          type: object
+          additionalProperties: true
+          nullable: true
+        baseline_ref:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+    SimulationRunEvent:
+      type: object
+      required:
+        - step_id
+        - run_id
+        - step_index
+        - event_type
+        - occurred_at
+      properties:
+        step_id:
+          type: string
+        run_id:
+          type: string
+        step_index:
+          type: integer
+        event_type:
+          type: string
+        payload_json:
+          type: object
+          additionalProperties: true
+        occurred_at:
+          type: string
+          format: date-time
+    SimulationRunMetric:
+      type: object
+      required:
+        - metric_id
+        - run_id
+        - metric_name
+        - metric_value
+        - captured_at
+      properties:
+        metric_id:
+          type: string
+        run_id:
+          type: string
+        metric_name:
+          type: string
+        dimension_json:
+          type: object
+          additionalProperties: true
+        metric_value:
+          type: number
+        window_name:
+          type: string
+        captured_at:
+          type: string
+          format: date-time
+    SimulationFinding:
+      type: object
+      required:
+        - finding_id
+        - run_id
+        - finding_type
+        - severity
+        - summary
+      properties:
+        finding_id:
+          type: string
+        run_id:
+          type: string
+        finding_type:
+          type: string
+        severity:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+            - critical
+        summary:
+          type: string
+        evidence_json:
+          type: object
+          additionalProperties: true
+        recommended_action:
+          type: string
+    SimulationBaseline:
+      type: object
+      required:
+        - baseline_id
+        - scenario_version_id
+        - baseline_name
+        - promoted_from_run_id
+        - created_at
+      properties:
+        baseline_id:
+          type: string
+        scenario_version_id:
+          type: string
+        baseline_name:
+          type: string
+        metric_expectations_json:
+          type: object
+          additionalProperties: true
+        promoted_from_run_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    SimulationReplay:
+      type: object
+      required:
+        - replay_id
+        - status
+        - source_run_id
+        - scenario_version_id
+        - requested_by
+        - created_at
+      properties:
+        replay_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - requested
+            - approved
+            - running
+            - completed
+            - denied
+            - failed
+        source_run_id:
+          type: string
+        scenario_version_id:
+          type: string
+        requested_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    CreateSimulationScenarioRequest:
+      type: object
+      required:
+        - scope
+        - name
+      properties:
+        scope:
+          type: string
+          enum:
+            - platform
+            - tenant
+        name:
+          type: string
+        description:
+          type: string
+    CreateSimulationScenarioVersionRequest:
+      type: object
+      required:
+        - definition_json
+        - seed_strategy
+        - runtime_mode_allowlist
+      properties:
+        definition_json:
+          type: object
+          additionalProperties: true
+        seed_strategy:
+          type: string
+        runtime_mode_allowlist:
+          type: array
+          items:
+            type: string
+            enum:
+              - deterministic_stub
+              - sampled_synthetic
+              - runtime_backed
+        success_criteria_json:
+          type: object
+          additionalProperties: true
+        failure_thresholds_json:
+          type: object
+          additionalProperties: true
+    PublishSimulationScenarioRequest:
+      type: object
+      properties:
+        scenario_version_id:
+          type: string
+      required:
+        - scenario_version_id
+    StartSimulationRunRequest:
+      type: object
+      required:
+        - scenario_version_id
+        - run_mode
+      properties:
+        scenario_version_id:
+          type: string
+        run_mode:
+          type: string
+          enum:
+            - deterministic_stub
+            - sampled_synthetic
+            - runtime_backed
+        seed:
+          type: string
+        budget_limit_jw:
+          type: number
+        budget_limit_usd:
+          type: number
+        time_limit_sec:
+          type: integer
+        candidate_policy_json:
+          type: object
+          additionalProperties: true
+        candidate_formula_json:
+          type: object
+          additionalProperties: true
+        baseline_ref:
+          type: string
+    PromoteSimulationBaselineRequest:
+      type: object
+      required:
+        - baseline_name
+      properties:
+        baseline_name:
+          type: string
+        metric_expectations_json:
+          type: object
+          additionalProperties: true
+    CompareSimulationRequest:
+      type: object
+      required:
+        - candidate_run_id
+      properties:
+        candidate_run_id:
+          type: string
+        baseline_id:
+          type: string
+        scenario_version_id:
+          type: string
+    CompareSimulationResponse:
+      type: object
+      required:
+        - verdict
+        - deltas
+      properties:
+        verdict:
+          type: string
+          enum:
+            - promote
+            - promote_with_guardrails
+            - hold_for_review
+            - reject
+        deltas:
+          type: array
+          items:
+            type: object
+            required:
+              - metric_name
+              - candidate
+              - baseline
+              - delta
+              - threshold_status
+            properties:
+              metric_name:
+                type: string
+              candidate:
+                type: number
+              baseline:
+                type: number
+              delta:
+                type: number
+              threshold_status:
+                type: string
+                enum:
+                  - pass
+                  - warn
+                  - fail
+    RequestSimulationReplayRequest:
+      type: object
+      required:
+        - source_run_id
+      properties:
+        source_run_id:
+          type: string
+        scenario_version_id:
+          type: string
+        reason:
+          type: string
+        sensitive_source:
+          type: boolean
+          default: false
 paths:
   /v1/tasks:
     post:
       security:
         - clerkBearer: []
       summary: Create task
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaskSpec'
+              $ref: "#/components/schemas/TaskSpec"
       responses:
-        '200':
+        "200":
           description: Task created
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /v1/results:
     post:
       security:
         - nodeBearer: []
       summary: Submit result
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ResultClaim'
+              $ref: "#/components/schemas/ResultClaim"
       responses:
-        '200':
+        "200":
           description: Result accepted for processing
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/scenarios:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create simulation scenario
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSimulationScenarioRequest"
+      responses:
+        "201":
+          description: Scenario created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - scenario
+                properties:
+                  scenario:
+                    $ref: "#/components/schemas/SimulationScenario"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    get:
+      security:
+        - clerkBearer: []
+      summary: List simulation scenarios
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Scenarios
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - scenarios
+                properties:
+                  scenarios:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationScenario"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/scenarios/{scenario_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get simulation scenario
+      parameters:
+        - $ref: "#/components/parameters/ScenarioId"
+      responses:
+        "200":
+          description: Scenario
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - scenario
+                properties:
+                  scenario:
+                    $ref: "#/components/schemas/SimulationScenario"
+                  versions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationScenarioVersion"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/scenarios/{scenario_id}/versions:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create immutable simulation scenario version
+      parameters:
+        - $ref: "#/components/parameters/ScenarioId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSimulationScenarioVersionRequest"
+      responses:
+        "201":
+          description: Scenario version created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - scenario_version
+                properties:
+                  scenario_version:
+                    $ref: "#/components/schemas/SimulationScenarioVersion"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/scenarios/{scenario_id}/publish:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Publish a scenario version
+      parameters:
+        - $ref: "#/components/parameters/ScenarioId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishSimulationScenarioRequest"
+      responses:
+        "200":
+          description: Scenario version published
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - scenario
+                properties:
+                  scenario:
+                    $ref: "#/components/schemas/SimulationScenario"
+                  scenario_version:
+                    $ref: "#/components/schemas/SimulationScenarioVersion"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Start simulation run
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartSimulationRunRequest"
+      responses:
+        "202":
+          description: Run accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - run
+                properties:
+                  run:
+                    $ref: "#/components/schemas/SimulationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    get:
+      security:
+        - clerkBearer: []
+      summary: List simulation runs
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Runs
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - runs
+                properties:
+                  runs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs/{run_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get simulation run
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          description: Run details
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - run
+                properties:
+                  run:
+                    $ref: "#/components/schemas/SimulationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs/{run_id}/cancel:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Cancel simulation run
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Run cancel requested
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - run
+                properties:
+                  run:
+                    $ref: "#/components/schemas/SimulationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs/{run_id}/events:
+    get:
+      security:
+        - clerkBearer: []
+      summary: List simulation run events
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Run events
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - events
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationRunEvent"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs/{run_id}/metrics:
+    get:
+      security:
+        - clerkBearer: []
+      summary: List simulation run metrics
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Run metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - metrics
+                properties:
+                  metrics:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationRunMetric"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs/{run_id}/findings:
+    get:
+      security:
+        - clerkBearer: []
+      summary: List simulation run findings
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Run findings
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - findings
+                properties:
+                  findings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationFinding"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs/{run_id}/artifacts:
+    get:
+      security:
+        - clerkBearer: []
+      summary: List simulation run artifacts
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Run artifacts
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - artifacts
+                properties:
+                  artifacts:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - artifact_id
+                      properties:
+                        artifact_id:
+                          type: string
+                        media_type:
+                          type: string
+                        size_bytes:
+                          type: integer
+                        metadata:
+                          type: object
+                          additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/runs/{run_id}/promote-baseline:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Promote simulation run to baseline
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromoteSimulationBaselineRequest"
+      responses:
+        "200":
+          description: Baseline promoted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - baseline
+                properties:
+                  baseline:
+                    $ref: "#/components/schemas/SimulationBaseline"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/baselines:
+    get:
+      security:
+        - clerkBearer: []
+      summary: List simulation baselines
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Baselines
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - baselines
+                properties:
+                  baselines:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationBaseline"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/baselines/{baseline_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get simulation baseline
+      parameters:
+        - $ref: "#/components/parameters/BaselineId"
+      responses:
+        "200":
+          description: Baseline
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - baseline
+                properties:
+                  baseline:
+                    $ref: "#/components/schemas/SimulationBaseline"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/compare:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Compare candidate simulation run to baseline
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompareSimulationRequest"
+      responses:
+        "200":
+          description: Comparison result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompareSimulationResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/replays:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Request simulation replay
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestSimulationReplayRequest"
+      responses:
+        "202":
+          description: Replay requested
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - replay
+                properties:
+                  replay:
+                    $ref: "#/components/schemas/SimulationReplay"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/replays/{replay_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get simulation replay
+      parameters:
+        - $ref: "#/components/parameters/ReplayId"
+      responses:
+        "200":
+          description: Replay details
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - replay
+                properties:
+                  replay:
+                    $ref: "#/components/schemas/SimulationReplay"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"

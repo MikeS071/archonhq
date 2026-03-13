@@ -14,3 +14,14 @@ Verifier -> API/DB: verification.completed
 Reducer -> DB: reduction.accepted
 Ledger -> DB: ledger.settlement_posted + reserve hold
 Projections -> UI: refresh
+
+## Happy path: simulation policy gate
+Operator UI -> API: create simulation scenario version
+API -> DB: simulation.scenario_version_created
+Operator UI -> API: start simulation run with candidate policy
+Simulation -> DB: simulation.run_started
+Simulation -> NATS/DB: simulation.step_recorded + simulation.metric_recorded
+Findings engine -> DB: simulation.finding_created
+Simulation -> DB: simulation.run_completed
+Reviewer UI -> API: compare against baseline
+Reviewer -> API: promote or reject candidate policy

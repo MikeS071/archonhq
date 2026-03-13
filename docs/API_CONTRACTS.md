@@ -75,6 +75,33 @@
 - GET `/v1/reliability/subjects/{subject_type}/{subject_id}`
 - GET `/v1/operators/{operator_id}/reliability`
 
+### /v1/simulation/scenarios
+- POST `/v1/simulation/scenarios`
+- GET `/v1/simulation/scenarios`
+- GET `/v1/simulation/scenarios/{scenario_id}`
+- POST `/v1/simulation/scenarios/{scenario_id}/versions`
+- POST `/v1/simulation/scenarios/{scenario_id}/publish`
+
+### /v1/simulation/runs
+- POST `/v1/simulation/runs`
+- GET `/v1/simulation/runs`
+- GET `/v1/simulation/runs/{run_id}`
+- POST `/v1/simulation/runs/{run_id}/cancel`
+- GET `/v1/simulation/runs/{run_id}/events`
+- GET `/v1/simulation/runs/{run_id}/metrics`
+- GET `/v1/simulation/runs/{run_id}/findings`
+- GET `/v1/simulation/runs/{run_id}/artifacts`
+
+### /v1/simulation/baselines
+- POST `/v1/simulation/runs/{run_id}/promote-baseline`
+- GET `/v1/simulation/baselines`
+- GET `/v1/simulation/baselines/{baseline_id}`
+- POST `/v1/simulation/compare`
+
+### /v1/simulation/replays
+- POST `/v1/simulation/replays`
+- GET `/v1/simulation/replays/{replay_id}`
+
 ### /v1/pricing
 - POST `/v1/pricing/quote`
 - GET `/v1/pricing/rate-cards`
@@ -122,3 +149,9 @@
   "approval_request_id": "apr_01"
 }
 ```
+
+## Simulation API rules
+- expensive run creation may return `202 Accepted`
+- scenario versions are immutable after publish
+- simulation artifacts are isolated from production artifact namespaces
+- replaying sensitive production traces requires explicit approval and audit logging

@@ -20,3 +20,6 @@ Implement Paperclip connector and projected workflow state.
 
 ## M7 Advanced workloads
 Implement code patch merge flows and autosearch self-improve bounded loops.
+
+## M8 Simulation and assurance
+Implement the simulation service, scenario registry, replayable runs, baseline diffing, emergent-risk findings, and release gates for critical policy changes.

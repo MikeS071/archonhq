@@ -29,6 +29,7 @@ Every event includes:
 - verification.*
 - reduction.*
 - reliability.*
+- simulation.*
 - pricing.*
 - ledger.*
 - policy.*
@@ -44,3 +45,6 @@ verification.completed
 reduction.accepted
 ledger.settlement_posted
 ledger.reserve_hold_created
+simulation.run_started
+simulation.finding_created
+simulation.run_completed

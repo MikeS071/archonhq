@@ -8,6 +8,7 @@
 - node
 - provider
 - sensitivity tier
+- simulation_scenario
 
 ## Policy sections
 - approval
@@ -16,6 +17,7 @@
 - retention
 - security
 - reliability backoff
+- simulation
 
 ## Example policy JSON
 ```json
@@ -35,6 +37,11 @@
   },
   "retention": {
     "workspace_default": "ephemeral"
+  },
+  "simulation": {
+    "enabled": true,
+    "allowed_run_modes": ["deterministic_stub", "sampled_synthetic"],
+    "requires_approval_for_replay": true
   }
 }
 ```

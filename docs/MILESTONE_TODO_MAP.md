@@ -40,3 +40,14 @@
 
 - Code patch merge strategies
 - Bounded autosearch self-improve loops
+- Evaluator/verifier hooks for iterative workloads
+- Auditable experiment and result lineage
+
+## M8 Simulation and Assurance
+
+- Prep artifacts complete (`docs/M8_PREP_WORK.md`, `docs/M8_MIGRATION_SPEC.md`, `docs/openapi/openapi.yaml`)
+- Simulation service and scenario registry
+- Replayable event-driven runs
+- Baseline promotion and diffing
+- Emergent-risk metrics and findings
+- Policy rollout gates for critical changes

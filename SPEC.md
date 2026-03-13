@@ -10,6 +10,7 @@ The system must support:
 - human approval by default
 - Hermes-powered worker nodes
 - Paperclip-dependent operator workflow
+- a built-in synthetic proving ground for pre-production assurance
 - ledger-only settlement in v1
 - clear operator UX for tasks, reliability, and earnings
 
@@ -31,6 +32,7 @@ The system must support:
 - Execution plane
 - Operator plane
 - Storage plane
+- Assurance plane
 
 ### 2.3 Major technical choices
 - Backend: Go
@@ -70,6 +72,8 @@ The system must support:
 17. Human approval is the default execution mode.
 18. Pricing supports both fixed rate cards and dynamic bidding.
 19. Optimize for clean long-term architecture and good UX.
+20. Built-in simulation/proving-ground support is required before critical policy automation is widened.
+21. Simulation state must remain isolated from production workflow truth.
 
 ## 4. Problem statement
 
@@ -78,6 +82,7 @@ This system exists because distributed agent work does not fit cleanly into Git/
 - line diffs are not enough for structured extractions and reductions
 - agent work needs approvals, verification, reducer logic, trust scoring, and accounting
 - operators need direct visibility into what their agents are doing and what value they have produced
+- system-level behavior under scale and adversarial pressure must be measured before changes are trusted
 
 ## 5. External reference projects and how they influence this design
 
@@ -126,6 +131,8 @@ Use as inspiration for:
 10. Ledger-first economics
 11. Version all schemas and strategies
 12. Keep service boundaries clean
+13. Reuse business logic across production and simulation where feasible
+14. Never mix simulation writes with production workflow truth
 
 ## 7. Major product features
 
@@ -174,6 +181,15 @@ Use as inspiration for:
 - pricing resolution
 - internal ledger posting
 - reserve holds
+
+### 7.6 Assurance and simulation
+- versioned scenario registry
+- replayable simulation runs
+- synthetic and incident-replay modes
+- policy and formula comparison
+- emergent-risk findings
+- baseline promotion
+- rollout gates for high-impact changes
 
 ## 8. Roles and access model
 
@@ -318,6 +334,10 @@ Output:
 - ReserveHold
 - EventRecord
 - ProjectionState
+- SimulationScenario
+- SimulationRun
+- SimulationFinding
+- SimulationBaseline
 
 ## 13. Canonical formulas
 
@@ -470,6 +490,7 @@ Required verifier types:
 - semantic coherence
 - benchmark/eval
 - duplication/fraud
+- simulation/baseline-regression
 
 ## 19. Operator UI requirements
 
@@ -504,6 +525,7 @@ Services:
 - verification
 - reduction
 - reliability
+- simulation
 - joulework
 - pricing
 - ledger
@@ -519,6 +541,7 @@ Services:
 - Redis for cache only
 - NATS for realtime only
 - Postgres for durable truth
+- isolated simulation object-store prefixes and consumer groups
 
 ## 22. Testing requirements
 
@@ -528,6 +551,9 @@ Services:
 - worker runtime contract tests
 - Paperclip connector contract tests
 - end-to-end local smoke flow
+- deterministic simulation regression tests
+- scenario baseline comparison tests
+- incident replay safety tests
 
 ## 23. Exclusions for v1
 
@@ -550,3 +576,4 @@ Do not build in v1:
 8. UI shows tasks, approvals, fleet, reliability, and ledger
 9. Paperclip workflow projection exists
 10. isolated ephemeral task workspaces are the default
+11. simulation scenarios can be created, run, replayed, and compared without affecting production workflow records

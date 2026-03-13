@@ -18,6 +18,8 @@
 - M3: add runtime execution, artifact metadata, and signature verification constraints.
 - M4: add economics tables refinements for pricing/ledger/reserves.
 - M5+: add UI support read models and integration tracking tables as needed.
+- M8: add simulation tables, read models, and isolation constraints.
+  - Detailed migration breakdown: `docs/M8_MIGRATION_SPEC.md`.
 
 3. Data safety rules
 - All migration scripts must be idempotent for retries where possible.
@@ -34,3 +36,14 @@
 - `migrations/001_migration_metadata.down.sql`
 - `migrations/002_projection_read_models.up.sql`
 - `migrations/002_projection_read_models.down.sql`
+
+## Planned M8 Migration Files
+
+- `migrations/005_simulation_schema_core.up.sql`
+- `migrations/005_simulation_schema_core.down.sql`
+- `migrations/006_simulation_schema_runtime.up.sql`
+- `migrations/006_simulation_schema_runtime.down.sql`
+- `migrations/007_simulation_indexes_and_isolation.up.sql`
+- `migrations/007_simulation_indexes_and_isolation.down.sql`
+- `migrations/008_simulation_read_models.up.sql`
+- `migrations/008_simulation_read_models.down.sql`

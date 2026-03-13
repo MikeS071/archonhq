@@ -34,6 +34,7 @@ archonhq/
 │  ├─ verification/
 │  ├─ reduction/
 │  ├─ reliability/
+│  ├─ simulation/
 │  ├─ joulework/
 │  ├─ pricing/
 │  ├─ ledger/
@@ -75,3 +76,4 @@ Disallow:
 - service-to-service direct imports
 - frontend direct DB access
 - Paperclip as source of truth
+- simulation writes into production workflow tables

@@ -18,6 +18,7 @@ archonhq/
 │  ├─ verification/
 │  ├─ reduction/
 │  ├─ reliability/
+│  ├─ simulation/
 │  ├─ joulework/
 │  ├─ pricing/
 │  ├─ ledger/

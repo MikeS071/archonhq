@@ -25,6 +25,16 @@
 - verifications
 - reductions
 - reliability_snapshots
+- simulation_scenarios
+- simulation_scenario_versions
+- simulation_runs
+- simulation_run_steps
+- simulation_run_actors
+- simulation_run_artifacts
+- simulation_run_metrics
+- simulation_findings
+- simulation_baselines
+- simulation_policy_snapshots
 - price_quotes
 - rate_snapshots
 - ledger_accounts
@@ -41,3 +51,7 @@
 - rm_ledger_balances
 - rm_reliability_summary
 - rm_recent_settlements
+- rm_simulation_run_summary
+- rm_simulation_findings
+- rm_simulation_baseline_diffs
+- rm_simulation_risk_heatmap
