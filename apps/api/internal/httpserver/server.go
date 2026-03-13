@@ -81,11 +81,14 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /v1/tasks/{task_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetTaskV2)))
 	mux.Handle("GET /v1/tasks/feed", auth.RequireHuman(http.HandlerFunc(s.handleTaskFeedV2)))
 	mux.Handle("POST /v1/tasks/{task_id}/cancel", auth.RequireHuman(http.HandlerFunc(s.handleCancelTaskV2)))
+	mux.Handle("POST /v1/tasks/{task_id}/decompose", auth.RequireHuman(http.HandlerFunc(s.handleTaskDecomposeV2)))
+	mux.Handle("GET /v1/tasks/{task_id}/market", auth.RequireHuman(http.HandlerFunc(s.handleTaskMarketV2)))
 
 	mux.Handle("GET /v1/approvals/queue", auth.RequireHuman(http.HandlerFunc(s.handleApprovalQueueV2)))
 	mux.Handle("GET /v1/approvals/{approval_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetApprovalV2)))
 	mux.Handle("POST /v1/approvals/{approval_id}/approve", auth.RequireHuman(http.HandlerFunc(s.handleApproveV2)))
 	mux.Handle("POST /v1/approvals/{approval_id}/deny", auth.RequireHuman(http.HandlerFunc(s.handleDenyV2)))
+	mux.Handle("POST /v1/approvals/{approval_id}/auto-mode", auth.RequireHuman(http.HandlerFunc(s.handleApprovalAutoModeV2)))
 
 	mux.Handle("POST /v1/leases", auth.RequireHuman(http.HandlerFunc(s.handleCreateLeaseV2)))
 	mux.Handle("POST /v1/leases/{lease_id}/claim", auth.RequireNode(http.HandlerFunc(s.handleClaimLeaseV2)))
@@ -100,6 +103,11 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/results", auth.RequireNode(http.HandlerFunc(s.handleSubmitResult)))
 	mux.Handle("GET /v1/results/{result_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetResultV2)))
 	mux.Handle("GET /v1/tasks/{task_id}/results", auth.RequireHuman(http.HandlerFunc(s.handleTaskResultsV2)))
+	mux.Handle("POST /v1/verifications", auth.RequireHuman(http.HandlerFunc(s.handleCreateVerificationV2)))
+	mux.Handle("GET /v1/verifications/{verification_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetVerificationV2)))
+	mux.Handle("GET /v1/results/{result_id}/verifications", auth.RequireHuman(http.HandlerFunc(s.handleResultVerificationsV2)))
+	mux.Handle("POST /v1/reductions", auth.RequireHuman(http.HandlerFunc(s.handleCreateReductionV2)))
+	mux.Handle("GET /v1/reductions/{reduction_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetReductionV2)))
 
 	mux.Handle("GET /v1/reliability/subjects/{subject_type}/{subject_id}", auth.RequireHuman(http.HandlerFunc(s.handleReliabilitySubjectV2)))
 	mux.Handle("GET /v1/operators/{operator_id}/reliability", auth.RequireHuman(http.HandlerFunc(s.handleOperatorReliabilityV2)))
@@ -120,17 +128,6 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("PATCH /v1/policies/{policy_id}", auth.RequireHuman(http.HandlerFunc(s.handlePatchPolicyV2)))
 	mux.Handle("POST /v1/integrations/paperclip/sync", auth.RequireHuman(http.HandlerFunc(s.handlePaperclipSyncV2)))
 	mux.Handle("GET /v1/integrations/paperclip/status", auth.RequireHuman(http.HandlerFunc(s.handlePaperclipStatusV2)))
-
-	// API contract placeholders.
-	for _, route := range []string{
-		"POST /v1/tasks/{task_id}/decompose",
-		"POST /v1/approvals/{approval_id}/auto-mode",
-		"POST /v1/verifications", "GET /v1/verifications/{verification_id}", "GET /v1/results/{result_id}/verifications",
-		"POST /v1/reductions", "GET /v1/reductions/{reduction_id}",
-		"GET /v1/tasks/{task_id}/market",
-	} {
-		mux.Handle(route, http.HandlerFunc(s.handleNotImplemented))
-	}
 
 	return s.withCorrelationID(s.withIdempotencyValidation(mux))
 }

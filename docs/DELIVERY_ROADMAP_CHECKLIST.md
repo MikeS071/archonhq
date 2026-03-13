@@ -135,6 +135,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## M9 Open Market Network
 
+- [ ] Read M9 artefacts (`docs/OPEN_MARKET_NETWORK_BUILD_SPEC.ms`, `docs/M9_MIGRATION_SPEC.md`)
 - [ ] Add market profiles for requesters and executors
 - [ ] Add work-class policy model (`public_open`, `public_sealed`, `restricted_market`, `private_tenant_only`)
 - [ ] Add market listing publication, cancel, and feed flows

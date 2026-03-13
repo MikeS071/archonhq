@@ -43,11 +43,11 @@ func TestServerMiscHandlersAndMiddleware(t *testing.T) {
 		t.Fatalf("legacy create task expected 200 got %d body=%s", rrLegacyCreate.Code, rrLegacyCreate.Body.String())
 	}
 
-	notImpl := httptest.NewRequest(http.MethodGet, "/v1/verifications/ver_01", nil)
-	rrNotImpl := httptest.NewRecorder()
-	h.ServeHTTP(rrNotImpl, notImpl)
-	if rrNotImpl.Code != http.StatusNotImplemented {
-		t.Fatalf("not implemented route expected 501 got %d body=%s", rrNotImpl.Code, rrNotImpl.Body.String())
+	unknown := httptest.NewRequest(http.MethodGet, "/v1/not-a-real-route", nil)
+	rrUnknown := httptest.NewRecorder()
+	h.ServeHTTP(rrUnknown, unknown)
+	if rrUnknown.Code != http.StatusOK {
+		t.Fatalf("unknown route expected root fallback 200 got %d body=%s", rrUnknown.Code, rrUnknown.Body.String())
 	}
 
 	healthReq := httptest.NewRequest(http.MethodGet, "/health", nil)

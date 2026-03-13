@@ -118,6 +118,260 @@ components:
           type: array
           items:
             type: string
+    DecomposeTaskRequest:
+      type: object
+      properties:
+        merge_strategy:
+          type: string
+        max_children:
+          type: integer
+          minimum: 1
+          maximum: 20
+        autosearch:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            experiment_id:
+              type: string
+            max_iterations:
+              type: integer
+            budget_limit_jw:
+              type: number
+            require_approval:
+              type: boolean
+            approval_granted:
+              type: boolean
+            min_accept_score:
+              type: number
+            candidate_benchmark_deltas:
+              type: array
+              items:
+                type: number
+    TaskDecomposeResponse:
+      type: object
+      required:
+        - task_id
+        - task_family
+        - merge_strategy
+        - children
+      properties:
+        task_id:
+          type: string
+        task_family:
+          type: string
+        merge_strategy:
+          type: string
+        children:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        autosearch_preview:
+          type: object
+          additionalProperties: true
+          nullable: true
+        simulation_entrypoints:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        lineage:
+          type: object
+          additionalProperties: true
+    ConfigureApprovalAutoModeRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        max_iterations:
+          type: integer
+        budget_limit_jw:
+          type: number
+        require_approval:
+          type: boolean
+        approval_granted:
+          type: boolean
+    ApprovalAutoModeResponse:
+      type: object
+      required:
+        - approval_id
+        - task_id
+        - auto_mode
+      properties:
+        approval_id:
+          type: string
+        task_id:
+          type: string
+        status:
+          type: string
+        auto_mode:
+          type: object
+          additionalProperties: true
+    CreateVerificationRequest:
+      type: object
+      required:
+        - result_id
+        - verifier_type
+      properties:
+        verification_id:
+          type: string
+        result_id:
+          type: string
+        verifier_type:
+          type: string
+        verifier_id:
+          type: string
+        score:
+          type: number
+        report:
+          type: object
+          additionalProperties: true
+        iterative:
+          type: object
+          additionalProperties: true
+    VerificationResponse:
+      type: object
+      required:
+        - verification_id
+        - result_id
+        - verifier_type
+        - decision
+      properties:
+        verification_id:
+          type: string
+        tenant_id:
+          type: string
+        result_id:
+          type: string
+        verifier_type:
+          type: string
+        verifier_id:
+          type: string
+        score:
+          type: number
+        decision:
+          type: string
+        report:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    CreateReductionRequest:
+      type: object
+      required:
+        - task_id
+        - candidates
+      properties:
+        reduction_id:
+          type: string
+        task_id:
+          type: string
+        strategy:
+          type: string
+        candidates:
+          type: array
+          items:
+            type: object
+            required:
+              - result_id
+              - score
+            properties:
+              result_id:
+                type: string
+              score:
+                type: number
+              patch_ops:
+                type: array
+                items:
+                  type: string
+              state_ref:
+                type: string
+              metadata:
+                type: object
+                additionalProperties: true
+        autosearch:
+          type: object
+          additionalProperties: true
+    ReductionResponse:
+      type: object
+      required:
+        - reduction_id
+        - task_id
+        - strategy
+      properties:
+        reduction_id:
+          type: string
+        tenant_id:
+          type: string
+        task_id:
+          type: string
+        strategy:
+          type: string
+        status:
+          type: string
+        winner_result_id:
+          type: string
+        ranked_result_ids:
+          type: array
+          items:
+            type: string
+        merged_patch_ops:
+          type: array
+          items:
+            type: string
+        output_state_ref:
+          type: string
+        autosearch_preview:
+          type: object
+          additionalProperties: true
+          nullable: true
+        simulation_entrypoints:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        decision:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    TaskMarketResponse:
+      type: object
+      required:
+        - task_id
+        - task_family
+        - status
+      properties:
+        task_id:
+          type: string
+        task_family:
+          type: string
+        status:
+          type: string
+        recommended_merge_strategy:
+          type: string
+        quote:
+          type: object
+          additionalProperties: true
+          nullable: true
+        rate_snapshot:
+          type: object
+          additionalProperties: true
+          nullable: true
+        signals:
+          type: object
+          additionalProperties: true
+        lineage_view:
+          type: object
+          additionalProperties: true
+        simulation_entrypoints:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
     SimulationScenario:
       type: object
       required:
@@ -656,6 +910,226 @@ paths:
       responses:
         "200":
           description: Result accepted for processing
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/tasks/{task_id}/decompose:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Decompose task into advanced workload shards
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecomposeTaskRequest"
+      responses:
+        "200":
+          description: Decomposition completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskDecomposeResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/approvals/{approval_id}/auto-mode:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Configure approval auto-mode guardrails
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - in: path
+          name: approval_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigureApprovalAutoModeRequest"
+      responses:
+        "200":
+          description: Auto-mode configuration persisted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalAutoModeResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/verifications:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create verification with evaluator/verifier hooks
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVerificationRequest"
+      responses:
+        "200":
+          description: Verification created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/verifications/{verification_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get verification details
+      parameters:
+        - in: path
+          name: verification_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Verification details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/results/{result_id}/verifications:
+    get:
+      security:
+        - clerkBearer: []
+      summary: List verifications for a result
+      parameters:
+        - in: path
+          name: result_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Verifications list
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result_id
+                  - verifications
+                properties:
+                  result_id:
+                    type: string
+                  verifications:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VerificationResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/reductions:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create reduction/merge decision
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReductionRequest"
+      responses:
+        "200":
+          description: Reduction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReductionResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/reductions/{reduction_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get reduction details
+      parameters:
+        - in: path
+          name: reduction_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reduction details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReductionResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/tasks/{task_id}/market:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get task market signals and lineage view
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task market summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskMarketResponse"
         default:
           description: Error
           content:
