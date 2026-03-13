@@ -270,3 +270,91 @@ func TestSimulationListGetCancelCompareAndErrorPaths(t *testing.T) {
 		t.Fatalf("get replay: %v", err)
 	}
 }
+
+func TestEnsureV1ScenarioLibraryAndModes(t *testing.T) {
+	svc := New()
+	ctx := context.Background()
+
+	if err := svc.EnsureV1ScenarioLibrary(ctx, ""); !errors.Is(err, ErrInvalidRequest) {
+		t.Fatalf("expected invalid request for empty tenant, got %v", err)
+	}
+	if err := svc.EnsureV1ScenarioLibrary(ctx, "ten_01"); err != nil {
+		t.Fatalf("seed v1 library: %v", err)
+	}
+	if err := svc.EnsureV1ScenarioLibrary(ctx, "ten_01"); err != nil {
+		t.Fatalf("seed v1 library idempotent call: %v", err)
+	}
+	scenarios := svc.ListScenarios(ctx, "ten_01")
+	if len(scenarios) < 11 {
+		t.Fatalf("expected seeded scenarios, got %d", len(scenarios))
+	}
+	seeded, err := svc.GetScenario(ctx, "ten_01", "scheduler_starvation_v1")
+	if err != nil {
+		t.Fatalf("get seeded scenario: %v", err)
+	}
+	if seeded.Status != ScenarioStatusPublished || seeded.PublishedVersion != 1 {
+		t.Fatalf("seeded scenario status/version unexpected: %+v", seeded)
+	}
+
+	custom, err := svc.CreateScenario(ctx, CreateScenarioRequest{
+		TenantID:   "ten_01",
+		ScenarioID: "mode_coverage_scn",
+		Scope:      ScopeTenant,
+		Name:       "Mode Coverage",
+		Goal:       "Cover sampled/runtime modes",
+	})
+	if err != nil {
+		t.Fatalf("create custom scenario: %v", err)
+	}
+	if _, err := svc.CreateScenarioVersion(ctx, "ten_01", custom.ScenarioID, CreateScenarioVersionRequest{Version: 1, Spec: map[string]any{"k": "v"}}); err != nil {
+		t.Fatalf("create custom scenario version: %v", err)
+	}
+	if err := svc.PublishScenario(ctx, "ten_01", custom.ScenarioID, 1); err != nil {
+		t.Fatalf("publish custom scenario: %v", err)
+	}
+
+	sampledRun, err := svc.StartRun(ctx, StartRunRequest{
+		TenantID:        "ten_01",
+		ScenarioID:      custom.ScenarioID,
+		ScenarioVersion: 1,
+		RunMode:         RunModeSampledSynthetic,
+		Seed:            "sampled_seed",
+	})
+	if err != nil {
+		t.Fatalf("start sampled synthetic run: %v", err)
+	}
+	if len(sampledRun.Metrics) < 4 {
+		t.Fatalf("expected sampled mode metric set, got %d", len(sampledRun.Metrics))
+	}
+	foundSampledArtifact := false
+	for _, artifact := range sampledRun.Artifacts {
+		if artifact.Kind == "sampled_trace_json" {
+			foundSampledArtifact = true
+			break
+		}
+	}
+	if !foundSampledArtifact {
+		t.Fatalf("expected sampled_trace_json artifact")
+	}
+
+	runtimeRun, err := svc.StartRun(ctx, StartRunRequest{
+		TenantID:        "ten_01",
+		ScenarioID:      custom.ScenarioID,
+		ScenarioVersion: 1,
+		RunMode:         RunModeRuntimeBacked,
+		Seed:            "runtime_seed",
+	})
+	if err != nil {
+		t.Fatalf("start runtime backed run: %v", err)
+	}
+	foundRuntimeArtifact := false
+	for _, artifact := range runtimeRun.Artifacts {
+		if artifact.Kind == "runtime_trace_json" {
+			foundRuntimeArtifact = true
+			break
+		}
+	}
+	if !foundRuntimeArtifact {
+		t.Fatalf("expected runtime_trace_json artifact")
+	}
+}

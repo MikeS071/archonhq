@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 
 	"github.com/MikeS071/archonhq/pkg/auth"
+	simulationsvc "github.com/MikeS071/archonhq/services/simulation"
 )
 
 func TestM5ListNodesAndPolicies(t *testing.T) {
@@ -176,4 +178,143 @@ func TestM5ListNodesAndPolicies(t *testing.T) {
 			t.Fatalf("expected patched model in response: %s", rr.Body.String())
 		}
 	})
+
+	t.Run("create policy rollout gate required for critical family", func(t *testing.T) {
+		s, _, db := newServerWithMock(t)
+		defer db.Close()
+
+		rr := httptest.NewRecorder()
+		req := reqWithActor(http.MethodPost, "/v1/policies", `{"family":"scheduler","provider":"OpenAI"}`, actorAdmin)
+		s.handleCreatePolicyV2(rr, req)
+		if rr.Code != http.StatusConflict {
+			t.Fatalf("expected 409 got %d body=%s", rr.Code, rr.Body.String())
+		}
+		if !strings.Contains(rr.Body.String(), "simulation_gate_required") {
+			t.Fatalf("expected simulation_gate_required body=%s", rr.Body.String())
+		}
+	})
+
+	t.Run("create policy rollout gate pass", func(t *testing.T) {
+		s, mock, db := newServerWithMock(t)
+		defer db.Close()
+
+		runID, baselineID := setupPolicyGateRunData(t, s)
+		mock.ExpectExec(regexp.QuoteMeta("INSERT INTO policy_bundles (policy_id, tenant_id, workspace_id, family, version, policy_json) VALUES ($1,$2,$3,$4,$5,$6)")).
+			WithArgs(sqlmock.AnyArg(), "ten_01", sql.NullString{}, "scheduler", 1, sqlmock.AnyArg()).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		rr := httptest.NewRecorder()
+		body := `{"family":"scheduler","provider":"OpenAI","simulation_gate":{"candidate_run_id":"` + runID + `","baseline_id":"` + baselineID + `"}}`
+		req := reqWithActor(http.MethodPost, "/v1/policies", body, actorAdmin)
+		s.handleCreatePolicyV2(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("expected 200 got %d body=%s", rr.Code, rr.Body.String())
+		}
+		if !strings.Contains(rr.Body.String(), "\"verdict\":\"pass\"") {
+			t.Fatalf("expected pass verdict body=%s", rr.Body.String())
+		}
+	})
+
+	t.Run("create policy rollout gate failed verdict", func(t *testing.T) {
+		s, _, db := newServerWithMock(t)
+		defer db.Close()
+
+		runID, baselineID := setupPolicyGateRunData(t, s)
+		rr := httptest.NewRecorder()
+		body := `{"family":"scheduler","provider":"OpenAI","simulation_gate":{"candidate_run_id":"` + runID + `","baseline_id":"` + baselineID + `","fail_on_severities":["medium"]}}`
+		req := reqWithActor(http.MethodPost, "/v1/policies", body, actorAdmin)
+		s.handleCreatePolicyV2(rr, req)
+		if rr.Code != http.StatusConflict {
+			t.Fatalf("expected 409 got %d body=%s", rr.Code, rr.Body.String())
+		}
+		if !strings.Contains(rr.Body.String(), "simulation_gate_failed") {
+			t.Fatalf("expected simulation_gate_failed body=%s", rr.Body.String())
+		}
+	})
+
+	t.Run("patch policy rollout gate required", func(t *testing.T) {
+		s, mock, db := newServerWithMock(t)
+		defer db.Close()
+
+		currentJSON := []byte(`{"provider":"OpenAI","model":"gpt-5"}`)
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT policy_id, tenant_id, workspace_id, family, version, policy_json FROM policy_bundles WHERE policy_id = $1 AND tenant_id = $2")).
+			WithArgs("pol_scheduler", "ten_01").
+			WillReturnRows(sqlmock.NewRows([]string{"policy_id", "tenant_id", "workspace_id", "family", "version", "policy_json"}).
+				AddRow("pol_scheduler", "ten_01", sql.NullString{}, sql.NullString{String: "scheduler", Valid: true}, 1, currentJSON))
+
+		rr := httptest.NewRecorder()
+		req := reqWithActor(http.MethodPatch, "/v1/policies/pol_scheduler", `{"version":2}`, actorAdmin)
+		req.SetPathValue("policy_id", "pol_scheduler")
+		s.handlePatchPolicyV2(rr, req)
+		if rr.Code != http.StatusConflict {
+			t.Fatalf("expected 409 got %d body=%s", rr.Code, rr.Body.String())
+		}
+	})
+
+	t.Run("patch policy rollout gate pass", func(t *testing.T) {
+		s, mock, db := newServerWithMock(t)
+		defer db.Close()
+
+		runID, baselineID := setupPolicyGateRunData(t, s)
+		currentJSON := []byte(`{"provider":"OpenAI","model":"gpt-5"}`)
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT policy_id, tenant_id, workspace_id, family, version, policy_json FROM policy_bundles WHERE policy_id = $1 AND tenant_id = $2")).
+			WithArgs("pol_scheduler", "ten_01").
+			WillReturnRows(sqlmock.NewRows([]string{"policy_id", "tenant_id", "workspace_id", "family", "version", "policy_json"}).
+				AddRow("pol_scheduler", "ten_01", sql.NullString{}, sql.NullString{String: "scheduler", Valid: true}, 1, currentJSON))
+		mock.ExpectExec(regexp.QuoteMeta("UPDATE policy_bundles SET workspace_id = $1, family = $2, version = $3, policy_json = $4 WHERE policy_id = $5 AND tenant_id = $6")).
+			WithArgs(sql.NullString{}, sql.NullString{String: "scheduler", Valid: true}, 2, sqlmock.AnyArg(), "pol_scheduler", "ten_01").
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		rr := httptest.NewRecorder()
+		body := `{"version":2,"simulation_gate":{"candidate_run_id":"` + runID + `","baseline_id":"` + baselineID + `"}}`
+		req := reqWithActor(http.MethodPatch, "/v1/policies/pol_scheduler", body, actorAdmin)
+		req.SetPathValue("policy_id", "pol_scheduler")
+		s.handlePatchPolicyV2(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("expected 200 got %d body=%s", rr.Code, rr.Body.String())
+		}
+		if !strings.Contains(rr.Body.String(), "\"verdict\":\"pass\"") {
+			t.Fatalf("expected pass verdict body=%s", rr.Body.String())
+		}
+	})
+}
+
+func setupPolicyGateRunData(t *testing.T, s *Server) (string, string) {
+	t.Helper()
+	ctx := context.Background()
+	scenarioID := "policy_gate_seed_scenario"
+	_, _ = s.simulation.CreateScenario(ctx, simulationsvc.CreateScenarioRequest{
+		TenantID:   "ten_01",
+		ScenarioID: scenarioID,
+		Scope:      simulationsvc.ScopeTenant,
+		Name:       "Policy Gate Scenario",
+		Goal:       "Policy gate validation",
+	})
+	_, _ = s.simulation.CreateScenarioVersion(ctx, "ten_01", scenarioID, simulationsvc.CreateScenarioVersionRequest{
+		Version: 1,
+		Spec:    map[string]any{"k": "v"},
+	})
+	if err := s.simulation.PublishScenario(ctx, "ten_01", scenarioID, 1); err != nil {
+		t.Fatalf("publish scenario: %v", err)
+	}
+	run, err := s.simulation.StartRun(ctx, simulationsvc.StartRunRequest{
+		TenantID:        "ten_01",
+		ScenarioID:      scenarioID,
+		ScenarioVersion: 1,
+		RunMode:         simulationsvc.RunModeDeterministicStub,
+		Seed:            "policy_gate_seed",
+	})
+	if err != nil {
+		t.Fatalf("start run: %v", err)
+	}
+	baseline, err := s.simulation.PromoteBaseline(ctx, simulationsvc.PromoteBaselineRequest{
+		TenantID:   "ten_01",
+		RunID:      run.RunID,
+		Reason:     "policy_gate_baseline",
+		PromotedBy: "user_admin",
+	})
+	if err != nil {
+		t.Fatalf("promote baseline: %v", err)
+	}
+	return run.RunID, baseline.BaselineID
 }

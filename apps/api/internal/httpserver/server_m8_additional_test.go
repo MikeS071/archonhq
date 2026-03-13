@@ -173,7 +173,7 @@ func TestM8AdditionalReadAndErrorEndpoints(t *testing.T) {
 	}
 
 	createScenarioReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/scenarios", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_scenario", map[string]any{
-		"scenario_id": "approval_backlog_v1",
+		"scenario_id": "custom_policy_gate_scenario_v1",
 		"scope":       "tenant",
 		"name":        "Approval Backlog",
 	})
@@ -183,21 +183,21 @@ func TestM8AdditionalReadAndErrorEndpoints(t *testing.T) {
 		t.Fatalf("create scenario expected 200 got %d body=%s", rrCreateScenario.Code, rrCreateScenario.Body.String())
 	}
 
-	createScenarioVersionReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/scenarios/approval_backlog_v1/versions", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_scenario_v", map[string]any{"version": 1, "spec": map[string]any{"k": "v"}})
+	createScenarioVersionReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/scenarios/custom_policy_gate_scenario_v1/versions", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_scenario_v", map[string]any{"version": 1, "spec": map[string]any{"k": "v"}})
 	rrCreateScenarioVersion := httptest.NewRecorder()
 	h.ServeHTTP(rrCreateScenarioVersion, createScenarioVersionReq)
 	if rrCreateScenarioVersion.Code != http.StatusOK {
 		t.Fatalf("create scenario version expected 200 got %d body=%s", rrCreateScenarioVersion.Code, rrCreateScenarioVersion.Body.String())
 	}
 
-	publishScenarioReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/scenarios/approval_backlog_v1/publish", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_scenario_pub", map[string]any{"version": 1})
+	publishScenarioReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/scenarios/custom_policy_gate_scenario_v1/publish", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_scenario_pub", map[string]any{"version": 1})
 	rrPublishScenario := httptest.NewRecorder()
 	h.ServeHTTP(rrPublishScenario, publishScenarioReq)
 	if rrPublishScenario.Code != http.StatusOK {
 		t.Fatalf("publish scenario expected 200 got %d body=%s", rrPublishScenario.Code, rrPublishScenario.Body.String())
 	}
 
-	startRunReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/runs", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_run", map[string]any{"scenario_id": "approval_backlog_v1", "scenario_version": 1, "run_mode": "deterministic_stub"})
+	startRunReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/runs", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_run", map[string]any{"scenario_id": "custom_policy_gate_scenario_v1", "scenario_version": 1, "run_mode": "deterministic_stub"})
 	rrStartRun := httptest.NewRecorder()
 	h.ServeHTTP(rrStartRun, startRunReq)
 	if rrStartRun.Code != http.StatusAccepted {

@@ -3,9 +3,11 @@ package simulation
 import (
 	"context"
 	"crypto/sha1"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"sync"
@@ -214,6 +216,7 @@ type Service struct {
 	runs            map[string]Run
 	baselines       map[string]Baseline
 	replays         map[string]Replay
+	seededTenants   map[string]bool
 	seq             uint64
 }
 
@@ -224,7 +227,86 @@ func New() *Service {
 		runs:            map[string]Run{},
 		baselines:       map[string]Baseline{},
 		replays:         map[string]Replay{},
+		seededTenants:   map[string]bool{},
 	}
+}
+
+type scenarioSeed struct {
+	ScenarioID string
+	Name       string
+	Goal       string
+}
+
+var v1ScenarioSeeds = []scenarioSeed{
+	{ScenarioID: "scheduler_starvation_v1", Name: "Scheduler Starvation", Goal: "Detect unfair dispatch and starvation."},
+	{ScenarioID: "verifier_collusion_v1", Name: "Verifier Collusion", Goal: "Detect verifier agreement inflation and false passes."},
+	{ScenarioID: "reducer_instability_v1", Name: "Reducer Instability", Goal: "Measure reduction determinism under reruns."},
+	{ScenarioID: "market_spam_attack_v1", Name: "Market Spam Attack", Goal: "Stress pricing and reserve defenses against spam floods."},
+	{ScenarioID: "approval_backlog_v1", Name: "Approval Backlog", Goal: "Test queue growth and SLA degradation."},
+	{ScenarioID: "research_false_consensus_v1", Name: "Research False Consensus", Goal: "Probe quorum quality under shared bad evidence."},
+	{ScenarioID: "code_patch_merge_storm_v1", Name: "Code Patch Merge Storm", Goal: "Stress merge and reduction under conflict storms."},
+	{ScenarioID: "autosearch_reward_hacking_v1", Name: "Autosearch Reward Hacking", Goal: "Detect quality gaming in bounded self-improve loops."},
+	{ScenarioID: "incident_replay_v1", Name: "Incident Replay", Goal: "Replay archived incidents against candidate mitigations."},
+	{ScenarioID: "critic_monoculture_v1", Name: "Critic Monoculture", Goal: "Measure diversity collapse and agreement inflation."},
+	{ScenarioID: "acceptance_contract_drift_v1", Name: "Acceptance Contract Drift", Goal: "Detect stale contract false accepts/rejects."},
+}
+
+func (s *Service) EnsureV1ScenarioLibrary(_ context.Context, tenantID string) error {
+	tenantID = strings.TrimSpace(tenantID)
+	if tenantID == "" {
+		return fmt.Errorf("%w: tenant_id is required", ErrInvalidRequest)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.seededTenants[tenantID] {
+		return nil
+	}
+
+	now := time.Now().UTC()
+	for _, seed := range v1ScenarioSeeds {
+		scenarioKey := tenantScoped(tenantID, seed.ScenarioID)
+		scenario := Scenario{
+			TenantID:         tenantID,
+			ScenarioID:       seed.ScenarioID,
+			Scope:            ScopeTenant,
+			Name:             seed.Name,
+			Goal:             seed.Goal,
+			Status:           ScenarioStatusPublished,
+			PublishedVersion: 1,
+			CreatedAt:        now,
+			UpdatedAt:        now,
+		}
+		if existing, ok := s.scenarios[scenarioKey]; ok {
+			scenario = existing
+			scenario.Status = ScenarioStatusPublished
+			if scenario.PublishedVersion <= 0 {
+				scenario.PublishedVersion = 1
+			}
+			scenario.UpdatedAt = now
+		}
+		s.scenarios[scenarioKey] = scenario
+
+		versionKey := scenarioVersionKey(tenantID, seed.ScenarioID, 1)
+		if _, ok := s.scenarioVersion[versionKey]; !ok {
+			s.scenarioVersion[versionKey] = ScenarioVersion{
+				TenantID:   tenantID,
+				ScenarioID: seed.ScenarioID,
+				Version:    1,
+				Spec: map[string]any{
+					"goal":             seed.Goal,
+					"seed_strategy":    "fixed",
+					"runtime_modes":    []string{RunModeDeterministicStub, RunModeSampledSynthetic},
+					"workload_mix":     map[string]any{"research.extract": 0.3, "code.patch": 0.4, "reduce.merge": 0.3},
+					"population_model": map[string]any{"workers": 24, "verifiers": 8, "reducers": 4},
+				},
+				CreatedAt: now,
+			}
+		}
+	}
+	s.seededTenants[tenantID] = true
+	return nil
 }
 
 func (s *Service) CreateScenario(_ context.Context, req CreateScenarioRequest) (Scenario, error) {
@@ -375,7 +457,17 @@ func (s *Service) StartRun(_ context.Context, req StartRunRequest) (Run, error) 
 		seed = "seed_default"
 	}
 
-	metrics, findings, artifacts := deterministicOutputs(req.ScenarioID, seed)
+	var metrics []RunMetric
+	var findings []RunFinding
+	var artifacts []RunArtifact
+	switch req.RunMode {
+	case RunModeDeterministicStub:
+		metrics, findings, artifacts = deterministicOutputs(req.ScenarioID, seed)
+	case RunModeSampledSynthetic:
+		metrics, findings, artifacts = sampledSyntheticOutputs(req.ScenarioID, seed)
+	case RunModeRuntimeBacked:
+		metrics, findings, artifacts = runtimeBackedOutputs(req.ScenarioID, seed)
+	}
 	run := Run{
 		TenantID:        req.TenantID,
 		RunID:           runID,
@@ -709,6 +801,77 @@ func deterministicOutputs(scenarioID, seed string) ([]RunMetric, []RunFinding, [
 			Metadata:   map[string]any{"namespace": "simulation"},
 		},
 	}
+	return metrics, findings, artifacts
+}
+
+func sampledSyntheticOutputs(scenarioID, seed string) ([]RunMetric, []RunFinding, []RunArtifact) {
+	hash := sha1.Sum([]byte("sampled::" + scenarioID + "::" + seed))
+	seedInt := int64(binary.BigEndian.Uint64(hash[:8]))
+	if seedInt == 0 {
+		seedInt = 1
+	}
+	rng := rand.New(rand.NewSource(seedInt))
+
+	queueStarvation := 0.02 + (rng.Float64() * 0.35)
+	falseAccept := 0.005 + (rng.Float64() * 0.22)
+	criticMono := 0.08 + (rng.Float64() * 0.88)
+
+	metrics := []RunMetric{
+		{Name: "scheduler_starvation", Value: queueStarvation, Unit: "ratio"},
+		{Name: "false_accept_penetration", Value: falseAccept, Unit: "ratio"},
+		{Name: "critic_monoculture_ratio", Value: criticMono, Unit: "ratio"},
+		{Name: "queue_amplification", Value: 1.0 + (rng.Float64() * 4.0), Unit: "factor"},
+	}
+
+	severity := SeverityMedium
+	if queueStarvation > 0.25 || falseAccept > 0.14 {
+		severity = SeverityHigh
+	}
+	if queueStarvation > 0.30 || falseAccept > 0.18 {
+		severity = SeverityCritical
+	}
+
+	findings := []RunFinding{
+		{
+			FindingType: "queue_instability",
+			Severity:    severity,
+			Summary:     "Sampled synthetic run detected queue drift under stochastic actor behavior.",
+			Metadata: map[string]any{
+				"seed":                     seed,
+				"scheduler_starvation":     queueStarvation,
+				"false_accept_penetration": falseAccept,
+			},
+		},
+		{
+			FindingType: "critic_monoculture",
+			Severity:    SeverityMedium,
+			Summary:     "Critic diversity eroded in sampled synthetic actor pool.",
+			Metadata: map[string]any{
+				"critic_monoculture_ratio": criticMono,
+				"seed":                     seed,
+			},
+		},
+	}
+
+	artifacts := []RunArtifact{
+		{
+			ArtifactID: "art_sim_sampled_" + shortHash(scenarioID+seed),
+			Kind:       "sampled_trace_json",
+			Ref:        "s3://simulation/" + scenarioID + "/" + seed + "/sampled-trace.json",
+			Metadata:   map[string]any{"namespace": "simulation", "mode": RunModeSampledSynthetic},
+		},
+	}
+	return metrics, findings, artifacts
+}
+
+func runtimeBackedOutputs(scenarioID, seed string) ([]RunMetric, []RunFinding, []RunArtifact) {
+	metrics, findings, artifacts := deterministicOutputs(scenarioID, seed)
+	artifacts = append(artifacts, RunArtifact{
+		ArtifactID: "art_runtime_" + shortHash(seed+scenarioID),
+		Kind:       "runtime_trace_json",
+		Ref:        "s3://simulation/" + scenarioID + "/" + seed + "/runtime-trace.json",
+		Metadata:   map[string]any{"namespace": "simulation", "mode": RunModeRuntimeBacked},
+	})
 	return metrics, findings, artifacts
 }
 

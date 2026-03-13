@@ -553,6 +553,10 @@ func (s *Server) handleListSimulationScenariosV2(w http.ResponseWriter, r *http.
 	if !ok {
 		return
 	}
+	if err := s.simulation.EnsureV1ScenarioLibrary(r.Context(), actor.TenantID); err != nil {
+		s.writeSimulationError(w, corrID, "simulation_seed_failed", "Failed to seed v1 simulation scenario library.", err)
+		return
+	}
 	items := s.simulation.ListScenarios(r.Context(), actor.TenantID)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"scenarios":      items,
@@ -563,6 +567,10 @@ func (s *Server) handleListSimulationScenariosV2(w http.ResponseWriter, r *http.
 func (s *Server) handleGetSimulationScenarioV2(w http.ResponseWriter, r *http.Request) {
 	actor, corrID, ok := s.requireActor(w, r)
 	if !ok {
+		return
+	}
+	if err := s.simulation.EnsureV1ScenarioLibrary(r.Context(), actor.TenantID); err != nil {
+		s.writeSimulationError(w, corrID, "simulation_seed_failed", "Failed to seed v1 simulation scenario library.", err)
 		return
 	}
 	scenario, err := s.simulation.GetScenario(r.Context(), actor.TenantID, strings.TrimSpace(r.PathValue("scenario_id")))
@@ -645,6 +653,10 @@ func (s *Server) handleStartSimulationRunV2(w http.ResponseWriter, r *http.Reque
 		apierrors.Write(w, http.StatusForbidden, "forbidden", "Insufficient role for simulation run create.", corrID, nil)
 		return
 	}
+	if err := s.simulation.EnsureV1ScenarioLibrary(r.Context(), actor.TenantID); err != nil {
+		s.writeSimulationError(w, corrID, "simulation_seed_failed", "Failed to seed v1 simulation scenario library.", err)
+		return
+	}
 
 	var req startSimulationRunRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -680,6 +692,10 @@ func (s *Server) handleStartSimulationRunV2(w http.ResponseWriter, r *http.Reque
 func (s *Server) handleListSimulationRunsV2(w http.ResponseWriter, r *http.Request) {
 	actor, corrID, ok := s.requireActor(w, r)
 	if !ok {
+		return
+	}
+	if err := s.simulation.EnsureV1ScenarioLibrary(r.Context(), actor.TenantID); err != nil {
+		s.writeSimulationError(w, corrID, "simulation_seed_failed", "Failed to seed v1 simulation scenario library.", err)
 		return
 	}
 	items := s.simulation.ListRuns(r.Context(), actor.TenantID, strings.TrimSpace(r.URL.Query().Get("scenario_id")))
@@ -822,6 +838,10 @@ func (s *Server) handlePromoteSimulationBaselineV2(w http.ResponseWriter, r *htt
 func (s *Server) handleListSimulationBaselinesV2(w http.ResponseWriter, r *http.Request) {
 	actor, corrID, ok := s.requireActor(w, r)
 	if !ok {
+		return
+	}
+	if err := s.simulation.EnsureV1ScenarioLibrary(r.Context(), actor.TenantID); err != nil {
+		s.writeSimulationError(w, corrID, "simulation_seed_failed", "Failed to seed v1 simulation scenario library.", err)
 		return
 	}
 	items := s.simulation.ListBaselines(r.Context(), actor.TenantID, strings.TrimSpace(r.URL.Query().Get("scenario_id")))

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/MikeS071/archonhq/pkg/apierrors"
+	simulationsvc "github.com/MikeS071/archonhq/services/simulation"
 )
 
 type listNodesResponseItem struct {
@@ -98,28 +99,36 @@ type policyRecord struct {
 }
 
 type createPolicyRequest struct {
-	PolicyID         string         `json:"policy_id,omitempty"`
-	WorkspaceID      string         `json:"workspace_id,omitempty"`
-	Family           string         `json:"family,omitempty"`
-	Version          int            `json:"version,omitempty"`
-	PolicyJSON       map[string]any `json:"policy_json,omitempty"`
-	Provider         string         `json:"provider,omitempty"`
-	Model            string         `json:"model,omitempty"`
-	MaxUSDPerTask    float64        `json:"max_usd_per_task,omitempty"`
-	Retries          int            `json:"retries,omitempty"`
-	RequiresApproval bool           `json:"requires_approval,omitempty"`
+	PolicyID         string               `json:"policy_id,omitempty"`
+	WorkspaceID      string               `json:"workspace_id,omitempty"`
+	Family           string               `json:"family,omitempty"`
+	Version          int                  `json:"version,omitempty"`
+	PolicyJSON       map[string]any       `json:"policy_json,omitempty"`
+	Provider         string               `json:"provider,omitempty"`
+	Model            string               `json:"model,omitempty"`
+	MaxUSDPerTask    float64              `json:"max_usd_per_task,omitempty"`
+	Retries          int                  `json:"retries,omitempty"`
+	RequiresApproval bool                 `json:"requires_approval,omitempty"`
+	SimulationGate   *simulationGateInput `json:"simulation_gate,omitempty"`
 }
 
 type patchPolicyRequest struct {
-	WorkspaceID      *string        `json:"workspace_id,omitempty"`
-	Family           *string        `json:"family,omitempty"`
-	Version          *int           `json:"version,omitempty"`
-	PolicyJSON       map[string]any `json:"policy_json,omitempty"`
-	Provider         *string        `json:"provider,omitempty"`
-	Model            *string        `json:"model,omitempty"`
-	MaxUSDPerTask    *float64       `json:"max_usd_per_task,omitempty"`
-	Retries          *int           `json:"retries,omitempty"`
-	RequiresApproval *bool          `json:"requires_approval,omitempty"`
+	WorkspaceID      *string              `json:"workspace_id,omitempty"`
+	Family           *string              `json:"family,omitempty"`
+	Version          *int                 `json:"version,omitempty"`
+	PolicyJSON       map[string]any       `json:"policy_json,omitempty"`
+	Provider         *string              `json:"provider,omitempty"`
+	Model            *string              `json:"model,omitempty"`
+	MaxUSDPerTask    *float64             `json:"max_usd_per_task,omitempty"`
+	Retries          *int                 `json:"retries,omitempty"`
+	RequiresApproval *bool                `json:"requires_approval,omitempty"`
+	SimulationGate   *simulationGateInput `json:"simulation_gate,omitempty"`
+}
+
+type simulationGateInput struct {
+	CandidateRunID   string   `json:"candidate_run_id,omitempty"`
+	BaselineID       string   `json:"baseline_id,omitempty"`
+	FailOnSeverities []string `json:"fail_on_severities,omitempty"`
 }
 
 func (s *Server) handleGetPoliciesV2(w http.ResponseWriter, r *http.Request) {
@@ -196,6 +205,12 @@ func (s *Server) handleCreatePolicyV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	simulationGate, err := s.evaluatePolicySimulationGate(r, actor.TenantID, req.Family, req.SimulationGate)
+	if err != nil {
+		s.writePolicySimulationGateError(w, corrID, err)
+		return
+	}
+
 	const q = "INSERT INTO policy_bundles (policy_id, tenant_id, workspace_id, family, version, policy_json) VALUES ($1,$2,$3,$4,$5,$6)"
 	if _, err := s.postgres.DB.ExecContext(r.Context(), q, policyID, actor.TenantID, nullableString(req.WorkspaceID), req.Family, req.Version, policyJSON); err != nil {
 		apierrors.Write(w, http.StatusInternalServerError, "policy_create_failed", "Failed to create policy.", corrID, nil)
@@ -217,8 +232,9 @@ func (s *Server) handleCreatePolicyV2(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
-		"policy":         serializePolicyRecord(rec, policyMap),
-		"correlation_id": corrID,
+		"policy":          serializePolicyRecord(rec, policyMap),
+		"simulation_gate": simulationGate,
+		"correlation_id":  corrID,
 	})
 }
 
@@ -298,6 +314,12 @@ func (s *Server) handlePatchPolicyV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	simulationGate, err := s.evaluatePolicySimulationGate(r, actor.TenantID, family.String, req.SimulationGate)
+	if err != nil {
+		s.writePolicySimulationGateError(w, corrID, err)
+		return
+	}
+
 	const updateQ = "UPDATE policy_bundles SET workspace_id = $1, family = $2, version = $3, policy_json = $4 WHERE policy_id = $5 AND tenant_id = $6"
 	result, err := s.postgres.DB.ExecContext(r.Context(), updateQ, workspaceID, family, version, updatedJSON, policyID, actor.TenantID)
 	if err != nil {
@@ -318,9 +340,77 @@ func (s *Server) handlePatchPolicyV2(w http.ResponseWriter, r *http.Request) {
 	rec.Version = version
 	rec.PolicyJSON = updatedJSON
 	writeJSON(w, http.StatusOK, map[string]any{
-		"policy":         serializePolicyRecord(rec, policyMap),
-		"correlation_id": corrID,
+		"policy":          serializePolicyRecord(rec, policyMap),
+		"simulation_gate": simulationGate,
+		"correlation_id":  corrID,
 	})
+}
+
+var (
+	errPolicySimulationGateRequired = errors.New("simulation gate is required")
+	errPolicySimulationGateFailed   = errors.New("simulation gate failed")
+)
+
+func requiresPolicySimulationGate(family string) bool {
+	switch strings.ToLower(strings.TrimSpace(family)) {
+	case "verification", "verifier", "reduction", "reducer", "scheduler", "pricing", "reliability", "validation", "validation_policy":
+		return true
+	default:
+		return false
+	}
+}
+
+func (s *Server) evaluatePolicySimulationGate(r *http.Request, tenantID, family string, gate *simulationGateInput) (map[string]any, error) {
+	if !requiresPolicySimulationGate(family) {
+		return nil, nil
+	}
+	if gate == nil || strings.TrimSpace(gate.CandidateRunID) == "" || strings.TrimSpace(gate.BaselineID) == "" {
+		return nil, errPolicySimulationGateRequired
+	}
+
+	failOnSeverities := gate.FailOnSeverities
+	if len(failOnSeverities) == 0 {
+		failOnSeverities = []string{simulationsvc.SeverityHigh, simulationsvc.SeverityCritical}
+	}
+
+	compare, err := s.simulation.Compare(r.Context(), simulationsvc.CompareRequest{
+		TenantID:         tenantID,
+		CandidateRunID:   strings.TrimSpace(gate.CandidateRunID),
+		BaselineID:       strings.TrimSpace(gate.BaselineID),
+		FailOnSeverities: failOnSeverities,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if compare.Verdict != "pass" {
+		return map[string]any{
+			"candidate_run_id": compare.CandidateRunID,
+			"baseline_id":      compare.BaselineID,
+			"verdict":          compare.Verdict,
+			"reasons":          compare.Reasons,
+		}, errPolicySimulationGateFailed
+	}
+	return map[string]any{
+		"candidate_run_id": compare.CandidateRunID,
+		"baseline_id":      compare.BaselineID,
+		"verdict":          compare.Verdict,
+		"reasons":          compare.Reasons,
+	}, nil
+}
+
+func (s *Server) writePolicySimulationGateError(w http.ResponseWriter, corrID string, err error) {
+	switch {
+	case errors.Is(err, errPolicySimulationGateRequired):
+		apierrors.Write(w, http.StatusConflict, "simulation_gate_required", "Simulation comparison gate is required for this policy family.", corrID, nil)
+	case errors.Is(err, errPolicySimulationGateFailed):
+		apierrors.Write(w, http.StatusConflict, "simulation_gate_failed", "Simulation comparison gate failed for policy change.", corrID, nil)
+	case errors.Is(err, simulationsvc.ErrNotFound):
+		apierrors.Write(w, http.StatusNotFound, "simulation_reference_not_found", "Simulation run or baseline not found for policy gate.", corrID, nil)
+	case errors.Is(err, simulationsvc.ErrInvalidRequest):
+		apierrors.Write(w, http.StatusBadRequest, "invalid_request", err.Error(), corrID, nil)
+	default:
+		apierrors.Write(w, http.StatusInternalServerError, "policy_gate_failed", "Failed to evaluate simulation gate for policy change.", corrID, map[string]any{"reason": err.Error()})
+	}
 }
 
 func mergedPolicyMap(base map[string]any, provider, model string, maxUSDPerTask float64, retries int, requiresApproval bool) map[string]any {
