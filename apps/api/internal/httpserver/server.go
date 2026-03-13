@@ -72,6 +72,7 @@ func (s *Server) Handler() http.Handler {
 
 	mux.Handle("POST /v1/nodes/register-intent", auth.RequireHuman(http.HandlerFunc(s.handleNodeRegisterIntentV2)))
 	mux.Handle("POST /v1/nodes/register", auth.RequireHuman(http.HandlerFunc(s.handleNodeRegisterV2)))
+	mux.Handle("GET /v1/nodes", auth.RequireHuman(http.HandlerFunc(s.handleListNodesV2)))
 	mux.Handle("POST /v1/nodes/{node_id}/heartbeat", auth.RequireNode(http.HandlerFunc(s.handleNodeHeartbeatV2)))
 	mux.Handle("GET /v1/nodes/{node_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetNodeV2)))
 	mux.Handle("GET /v1/nodes/{node_id}/leases", auth.RequireHuman(http.HandlerFunc(s.handleGetNodeLeasesV2)))
@@ -114,6 +115,10 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/ledger/settlements", auth.RequireHuman(http.HandlerFunc(s.handlePostSettlementV2)))
 	mux.Handle("POST /v1/reserve-holds/{reserve_hold_id}/release", auth.RequireHuman(http.HandlerFunc(s.handleReleaseReserveHoldV2)))
 
+	mux.Handle("GET /v1/policies", auth.RequireHuman(http.HandlerFunc(s.handleGetPoliciesV2)))
+	mux.Handle("POST /v1/policies", auth.RequireHuman(http.HandlerFunc(s.handleCreatePolicyV2)))
+	mux.Handle("PATCH /v1/policies/{policy_id}", auth.RequireHuman(http.HandlerFunc(s.handlePatchPolicyV2)))
+
 	// API contract placeholders.
 	for _, route := range []string{
 		"POST /v1/tasks/{task_id}/decompose",
@@ -121,7 +126,6 @@ func (s *Server) Handler() http.Handler {
 		"POST /v1/verifications", "GET /v1/verifications/{verification_id}", "GET /v1/results/{result_id}/verifications",
 		"POST /v1/reductions", "GET /v1/reductions/{reduction_id}",
 		"GET /v1/tasks/{task_id}/market",
-		"GET /v1/policies", "POST /v1/policies", "PATCH /v1/policies/{policy_id}",
 		"POST /v1/integrations/paperclip/sync", "GET /v1/integrations/paperclip/status",
 	} {
 		mux.Handle(route, http.HandlerFunc(s.handleNotImplemented))

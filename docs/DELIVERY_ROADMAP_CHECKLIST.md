@@ -78,16 +78,17 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## M5 UI (Svelte/SvelteKit + shadcn-svelte)
 
-- [ ] For frontend UI use the shadcn-svelte kit (https://www.shadcn-svelte.com/llms.txt)
-- [ ] Scaffold Svelte + shadcn-svelte app routes from `frontend/FRONTEND_ROUTE_COMPONENT_MAP.md`
-- [ ] Implement dashboard with key metric cards
-- [ ] Implement tasks list and task detail tabs
-- [ ] Implement approvals queue UI
-- [ ] Implement fleet and node detail UI
-- [ ] Implement ledger and reliability pages
-- [ ] Implement pricing and provider settings pages
-- [ ] Implement admin surfaces and role-aware guards
-- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+- [x] For frontend UI use the shadcn-svelte kit (https://www.shadcn-svelte.com/llms.txt)
+- [x] Scaffold Svelte + shadcn-svelte app routes from `frontend/FRONTEND_ROUTE_COMPONENT_MAP.md`
+- [x] Implement dashboard with key metric cards
+- [x] Implement tasks list and task detail tabs
+- [x] Implement approvals queue UI
+- [x] Implement fleet and node detail UI
+- [x] Implement ledger and reliability pages
+- [x] Implement pricing and provider settings pages
+- [x] Implement admin surfaces and role-aware guards
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+  - Current review report: `docs/reviews/M5_REVIEW_GATE.md` (M5 gaps closed; gate complete)
 
 ## M6 Integrations
 
@@ -102,7 +103,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 ## M7 Advanced Workloads
 
 - [ ] Implement code patch merge flow strategies
-- [ ] Implement bounded autosearch/self-improve workflow loop
+- [ ] Implement bounded autoresearch/self-improve workflow loop
 - [ ] Add guardrails for iteration limits, budget, and approval gates
 - [ ] Add evaluator/verifier hooks for iterative workloads
 - [ ] Add auditable experiment/result lineage views
@@ -131,7 +132,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] M2 exit: task lifecycle from tenant/workspace through lease + events/projections working
 - [x] M3 exit: worker runtime can execute, upload artifacts, and submit signed results
 - [x] M4 exit: scoring, pricing, ledger, and reserve flows operational
-- [ ] M5 exit: Svelte operator workflows available for core operations
+- [x] M5 exit: Svelte operator workflows available for core operations
 - [ ] M6 exit: Paperclip projections syncing from internal source-of-truth state
 - [ ] M7 exit: advanced merge and bounded self-improvement flows operational
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase

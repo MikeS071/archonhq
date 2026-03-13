@@ -10,6 +10,9 @@
     "web:dev": "pnpm --dir apps/web dev",
     "web:build": "pnpm --dir apps/web build",
     "web:check": "pnpm --dir apps/web check",
+    "web:test": "pnpm --dir apps/web test",
+    "web:coverage": "pnpm --dir apps/web test:coverage",
+    "web:e2e": "pnpm --dir apps/web test:e2e",
     "lint": "echo 'lint scaffold pending'",
     "test": "echo 'test scaffold pending'"
   },
