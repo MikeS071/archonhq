@@ -88,6 +88,7 @@
 ### /v1/validation-runs
 - POST `/v1/tasks/{task_id}/validation-runs`
 - GET `/v1/tasks/{task_id}/validation-runs`
+- GET `/v1/validation/dashboard`
 - GET `/v1/validation-runs/{validation_run_id}`
 - GET `/v1/validation-runs/{validation_run_id}/stages`
 - POST `/v1/validation-runs/{validation_run_id}/escalate`
@@ -122,6 +123,7 @@
 ### /v1/simulation/replays
 - POST `/v1/simulation/replays`
 - GET `/v1/simulation/replays/{replay_id}`
+- GET `/v1/simulation/dashboard`
 
 ### /v1/pricing
 - POST `/v1/pricing/quote`
@@ -264,6 +266,10 @@
 - `high_assurance` workloads may require cross-provider or cross-failure-mode critic diversity by policy
 - validation stage failures may return `409 Conflict` when work cannot advance without retry or escalation
 - validation escalation endpoints must produce auditable operator-visible state
+- validation dashboards must expose effectiveness and escalation-queue visibility for operators
+
+## Simulation operator API rules
+- simulation dashboards must expose run/finding/baseline/risk summaries for tenant-scoped operator views
 
 ## Open-market API rules
 - market listings require funded reserve checks before publish

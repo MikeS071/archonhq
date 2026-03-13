@@ -101,6 +101,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/critics/{critic_id}/publish", auth.RequireHuman(http.HandlerFunc(s.handlePublishCriticV2)))
 	mux.Handle("POST /v1/tasks/{task_id}/validation-runs", auth.RequireHuman(http.HandlerFunc(s.handleStartValidationRunV2)))
 	mux.Handle("GET /v1/tasks/{task_id}/validation-runs", auth.RequireHuman(http.HandlerFunc(s.handleListTaskValidationRunsV2)))
+	mux.Handle("GET /v1/validation/dashboard", auth.RequireHuman(http.HandlerFunc(s.handleValidationDashboardV2)))
 	mux.Handle("GET /v1/validation-runs/{validation_run_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetValidationRunV2)))
 	mux.Handle("GET /v1/validation-runs/{validation_run_id}/stages", auth.RequireHuman(http.HandlerFunc(s.handleValidationRunStagesV2)))
 	mux.Handle("POST /v1/validation-runs/{validation_run_id}/escalate", auth.RequireHuman(http.HandlerFunc(s.handleEscalateValidationRunV2)))
@@ -168,6 +169,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/simulation/compare", auth.RequireHuman(http.HandlerFunc(s.handleCompareSimulationRunsV2)))
 	mux.Handle("POST /v1/simulation/replays", auth.RequireHuman(http.HandlerFunc(s.handleRequestSimulationReplayV2)))
 	mux.Handle("GET /v1/simulation/replays/{replay_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetSimulationReplayV2)))
+	mux.Handle("GET /v1/simulation/dashboard", auth.RequireHuman(http.HandlerFunc(s.handleSimulationDashboardV2)))
 
 	return s.withCorrelationID(s.withIdempotencyValidation(mux))
 }

@@ -124,14 +124,15 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] Implement dedicated simulation tables, read models, and event family
 - [x] Implement replayable event-driven runs with fixed-seed support
 - [x] Implement deterministic stub mode for CI and policy regression
-- [ ] Implement sampled synthetic mode for market and queue stress tests
-- [ ] Add required v1 scenarios (`scheduler_starvation_v1`, `verifier_collusion_v1`, `reducer_instability_v1`, `market_spam_attack_v1`, `approval_backlog_v1`, `research_false_consensus_v1`, `code_patch_merge_storm_v1`, `autosearch_reward_hacking_v1`, `incident_replay_v1`, `critic_monoculture_v1`, `acceptance_contract_drift_v1`)
+- [x] Implement sampled synthetic mode for market and queue stress tests
+- [x] Add required v1 scenarios (`scheduler_starvation_v1`, `verifier_collusion_v1`, `reducer_instability_v1`, `market_spam_attack_v1`, `approval_backlog_v1`, `research_false_consensus_v1`, `code_patch_merge_storm_v1`, `autosearch_reward_hacking_v1`, `incident_replay_v1`, `critic_monoculture_v1`, `acceptance_contract_drift_v1`)
 - [x] Implement baseline promotion and metric diffing
 - [x] Implement findings generation and risk heatmaps
-- [ ] Add validation effectiveness dashboards and operator escalation views
-- [ ] Add simulation dashboards and operator views
-- [ ] Gate verifier/reducer/scheduler/pricing/reliability/validation policy changes on simulation comparison
-- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+- [x] Add validation effectiveness dashboards and operator escalation views
+- [x] Add simulation dashboards and operator views
+- [x] Gate verifier/reducer/scheduler/pricing/reliability/validation policy changes on simulation comparison
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+  - Current review report: `docs/reviews/M8_REVIEW_GATE.md` (M8 simulation and assurance scope complete)
 
 ## M9 Open Market Network
 
@@ -184,6 +185,6 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] M5 exit: Svelte operator workflows available for core operations
 - [x] M6 exit: Paperclip projections syncing from internal source-of-truth state
 - [x] M7 exit: advanced merge and bounded self-improvement flows operational
-- [ ] M8 exit: simulation scenarios, replayable runs, baseline comparisons, and policy gates operational
+- [x] M8 exit: simulation scenarios, replayable runs, baseline comparisons, and policy gates operational
 - [ ] M9 exit: funded open-market listings, escrow, disputes, payouts, and market-mode rollout gates operational
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase

@@ -510,6 +510,24 @@ func (s *Server) handleEscalateValidationRunV2(w http.ResponseWriter, r *http.Re
 	})
 }
 
+func (s *Server) handleValidationDashboardV2(w http.ResponseWriter, r *http.Request) {
+	actor, corrID, ok := s.requireActor(w, r)
+	if !ok {
+		return
+	}
+	if !actor.HasAnyRole("tenant_admin", "platform_admin", "operator", "approver", "auditor") {
+		apierrors.Write(w, http.StatusForbidden, "forbidden", "Insufficient role for validation dashboard read.", corrID, nil)
+		return
+	}
+
+	limit := atoiQueryDefault(r.URL.Query().Get("limit"), 20)
+	dashboard := s.assurance.ValidationDashboard(r.Context(), actor.TenantID, limit)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"validation_dashboard": dashboard,
+		"correlation_id":       corrID,
+	})
+}
+
 func (s *Server) handleCreateSimulationScenarioV2(w http.ResponseWriter, r *http.Request) {
 	actor, corrID, ok := s.requireActor(w, r)
 	if !ok {
@@ -950,6 +968,28 @@ func (s *Server) handleGetSimulationReplayV2(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, map[string]any{
 		"replay":         replay,
 		"correlation_id": corrID,
+	})
+}
+
+func (s *Server) handleSimulationDashboardV2(w http.ResponseWriter, r *http.Request) {
+	actor, corrID, ok := s.requireActor(w, r)
+	if !ok {
+		return
+	}
+	if !actor.HasAnyRole("tenant_admin", "platform_admin", "operator", "approver", "auditor") {
+		apierrors.Write(w, http.StatusForbidden, "forbidden", "Insufficient role for simulation dashboard read.", corrID, nil)
+		return
+	}
+	if err := s.simulation.EnsureV1ScenarioLibrary(r.Context(), actor.TenantID); err != nil {
+		s.writeSimulationError(w, corrID, "simulation_seed_failed", "Failed to seed v1 simulation scenario library.", err)
+		return
+	}
+
+	limit := atoiQueryDefault(r.URL.Query().Get("limit"), 20)
+	dashboard := s.simulation.Dashboard(r.Context(), actor.TenantID, limit)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"simulation_dashboard": dashboard,
+		"correlation_id":       corrID,
 	})
 }
 

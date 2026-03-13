@@ -156,6 +156,27 @@ func TestM8AdditionalReadAndErrorEndpoints(t *testing.T) {
 		t.Fatalf("escalate forbidden expected 403 got %d body=%s", rrEscalateForbidden.Code, rrEscalateForbidden.Body.String())
 	}
 
+	escalateReq := newJSONRequest(t, http.MethodPost, "/v1/validation-runs/"+validationRunID+"/escalate", "human:ten_01:user_approver:approver", "idem_m8_extra_escalate", map[string]any{"reason": "manual_review"})
+	rrEscalate := httptest.NewRecorder()
+	h.ServeHTTP(rrEscalate, escalateReq)
+	if rrEscalate.Code != http.StatusOK {
+		t.Fatalf("escalate expected 200 got %d body=%s", rrEscalate.Code, rrEscalate.Body.String())
+	}
+
+	validationDashboardReq := httptest.NewRequest(http.MethodGet, "/v1/validation/dashboard", nil)
+	validationDashboardReq.Header.Set("Authorization", "Bearer human:ten_01:user_operator:operator")
+	rrValidationDashboard := httptest.NewRecorder()
+	h.ServeHTTP(rrValidationDashboard, validationDashboardReq)
+	if rrValidationDashboard.Code != http.StatusOK {
+		t.Fatalf("validation dashboard expected 200 got %d body=%s", rrValidationDashboard.Code, rrValidationDashboard.Body.String())
+	}
+	if !strings.Contains(rrValidationDashboard.Body.String(), "validation_dashboard") {
+		t.Fatalf("validation dashboard payload missing key body=%s", rrValidationDashboard.Body.String())
+	}
+	if !strings.Contains(rrValidationDashboard.Body.String(), "escalation_queue") {
+		t.Fatalf("validation dashboard payload missing escalation queue body=%s", rrValidationDashboard.Body.String())
+	}
+
 	listScenariosReq := httptest.NewRequest(http.MethodGet, "/v1/simulation/scenarios", nil)
 	listScenariosReq.Header.Set("Authorization", "Bearer human:ten_01:user_admin:tenant_admin")
 	rrListScenarios := httptest.NewRecorder()
@@ -242,6 +263,20 @@ func TestM8AdditionalReadAndErrorEndpoints(t *testing.T) {
 	h.ServeHTTP(rrGetBaseline, getBaselineReq)
 	if rrGetBaseline.Code != http.StatusOK {
 		t.Fatalf("get baseline expected 200 got %d body=%s", rrGetBaseline.Code, rrGetBaseline.Body.String())
+	}
+
+	simulationDashboardReq := httptest.NewRequest(http.MethodGet, "/v1/simulation/dashboard", nil)
+	simulationDashboardReq.Header.Set("Authorization", "Bearer human:ten_01:user_operator:operator")
+	rrSimulationDashboard := httptest.NewRecorder()
+	h.ServeHTTP(rrSimulationDashboard, simulationDashboardReq)
+	if rrSimulationDashboard.Code != http.StatusOK {
+		t.Fatalf("simulation dashboard expected 200 got %d body=%s", rrSimulationDashboard.Code, rrSimulationDashboard.Body.String())
+	}
+	if !strings.Contains(rrSimulationDashboard.Body.String(), "simulation_dashboard") {
+		t.Fatalf("simulation dashboard payload missing key body=%s", rrSimulationDashboard.Body.String())
+	}
+	if !strings.Contains(rrSimulationDashboard.Body.String(), "risk_heatmap") {
+		t.Fatalf("simulation dashboard payload missing risk heatmap body=%s", rrSimulationDashboard.Body.String())
 	}
 
 	compareMissingReq := newJSONRequest(t, http.MethodPost, "/v1/simulation/compare", "human:ten_01:user_admin:tenant_admin", "idem_m8_extra_compare_missing", map[string]any{"candidate_run_id": runID, "baseline_id": "missing"})
@@ -376,6 +411,19 @@ func TestM8GuardrailErrorBranches(t *testing.T) {
 		h.ServeHTTP(rr, req)
 		if rr.Code != http.StatusNotFound {
 			t.Fatalf("missing run collection for %s expected 404 got %d body=%s", path, rr.Code, rr.Body.String())
+		}
+	}
+
+	for _, path := range []string{
+		"/v1/validation/dashboard",
+		"/v1/simulation/dashboard",
+	} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		req.Header.Set("Authorization", "Bearer human:ten_01:user_dev:developer")
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+		if rr.Code != http.StatusForbidden {
+			t.Fatalf("dashboard forbidden for %s expected 403 got %d body=%s", path, rr.Code, rr.Body.String())
 		}
 	}
 }

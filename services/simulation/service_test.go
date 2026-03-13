@@ -358,3 +358,59 @@ func TestEnsureV1ScenarioLibraryAndModes(t *testing.T) {
 		t.Fatalf("expected runtime_trace_json artifact")
 	}
 }
+
+func TestSimulationDashboard(t *testing.T) {
+	svc := New()
+	ctx := context.Background()
+
+	if err := svc.EnsureV1ScenarioLibrary(ctx, "ten_01"); err != nil {
+		t.Fatalf("seed scenarios: %v", err)
+	}
+
+	runDeterministic, err := svc.StartRun(ctx, StartRunRequest{
+		TenantID:        "ten_01",
+		ScenarioID:      "scheduler_starvation_v1",
+		ScenarioVersion: 1,
+		RunMode:         RunModeDeterministicStub,
+		Seed:            "dash_seed_1",
+	})
+	if err != nil {
+		t.Fatalf("start deterministic run: %v", err)
+	}
+	runSampled, err := svc.StartRun(ctx, StartRunRequest{
+		TenantID:        "ten_01",
+		ScenarioID:      "verifier_collusion_v1",
+		ScenarioVersion: 1,
+		RunMode:         RunModeSampledSynthetic,
+		Seed:            "dash_seed_2",
+	})
+	if err != nil {
+		t.Fatalf("start sampled run: %v", err)
+	}
+
+	if _, err := svc.PromoteBaseline(ctx, PromoteBaselineRequest{
+		TenantID:   "ten_01",
+		RunID:      runDeterministic.RunID,
+		Reason:     "dashboard_baseline",
+		PromotedBy: "user_admin",
+	}); err != nil {
+		t.Fatalf("promote baseline: %v", err)
+	}
+
+	dashboard := svc.Dashboard(ctx, "ten_01", 10)
+	if dashboard.TotalRuns != 2 {
+		t.Fatalf("total runs=%d want 2", dashboard.TotalRuns)
+	}
+	if dashboard.RunModeCounts[RunModeDeterministicStub] != 1 || dashboard.RunModeCounts[RunModeSampledSynthetic] != 1 {
+		t.Fatalf("unexpected run mode counts: %+v", dashboard.RunModeCounts)
+	}
+	if dashboard.BaselinesTotal != 1 {
+		t.Fatalf("baselines total=%d want 1", dashboard.BaselinesTotal)
+	}
+	if len(dashboard.RiskHeatmap) == 0 {
+		t.Fatalf("expected non-empty risk heatmap")
+	}
+	if dashboard.ScenarioCounts[runSampled.ScenarioID] == 0 {
+		t.Fatalf("expected sampled scenario count")
+	}
+}

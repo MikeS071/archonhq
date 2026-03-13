@@ -150,6 +150,18 @@ type ValidationEscalation struct {
 	CreatedAt        time.Time `json:"created_at"`
 }
 
+type ValidationDashboard struct {
+	TenantID               string                 `json:"tenant_id"`
+	TotalRuns              int                    `json:"total_runs"`
+	StatusCounts           map[string]int         `json:"status_counts"`
+	DecisionCounts         map[string]int         `json:"decision_counts"`
+	TierCounts             map[string]int         `json:"tier_counts"`
+	StageIssueCounts       map[string]int         `json:"stage_issue_counts"`
+	RecentRuns             []ValidationRun        `json:"recent_runs"`
+	EscalationQueue        []ValidationEscalation `json:"escalation_queue"`
+	EscalationResidualRate float64                `json:"escalation_residual_rate"`
+}
+
 type CreateTemplateRequest struct {
 	TenantID   string
 	TemplateID string
@@ -653,6 +665,23 @@ func (s *Service) ListTaskValidationRuns(_ context.Context, tenantID, taskID str
 	return items
 }
 
+func (s *Service) ListValidationRuns(_ context.Context, tenantID string) []ValidationRun {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	items := make([]ValidationRun, 0)
+	for _, run := range s.validationRuns {
+		if run.TenantID != tenantID {
+			continue
+		}
+		items = append(items, run)
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].CreatedAt.After(items[j].CreatedAt)
+	})
+	return items
+}
+
 func (s *Service) GetValidationRun(_ context.Context, tenantID, validationRunID string) (ValidationRun, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -699,6 +728,75 @@ func (s *Service) EscalateValidationRun(_ context.Context, req EscalateValidatio
 	}
 	s.escalations[runKey] = append(s.escalations[runKey], esc)
 	return run, nil
+}
+
+func (s *Service) ValidationDashboard(_ context.Context, tenantID string, limit int) ValidationDashboard {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	statusCounts := map[string]int{}
+	decisionCounts := map[string]int{}
+	tierCounts := map[string]int{}
+	stageIssueCounts := map[string]int{}
+	runs := make([]ValidationRun, 0)
+
+	for _, run := range s.validationRuns {
+		if run.TenantID != tenantID {
+			continue
+		}
+		runs = append(runs, run)
+		statusCounts[run.Status]++
+		decisionCounts[run.Decision]++
+		tierCounts[run.ValidationTier]++
+		for _, stage := range run.StageResults {
+			if stage.Decision != DecisionAccepted {
+				stageIssueCounts[stage.StageName]++
+			}
+		}
+	}
+	sort.Slice(runs, func(i, j int) bool {
+		return runs[i].CreatedAt.After(runs[j].CreatedAt)
+	})
+	recentRuns := runs
+	if len(recentRuns) > limit {
+		recentRuns = recentRuns[:limit]
+	}
+
+	escalations := make([]ValidationEscalation, 0)
+	for key, runEscalations := range s.escalations {
+		if !strings.HasPrefix(key, strings.TrimSpace(tenantID)+"::") {
+			continue
+		}
+		escalations = append(escalations, runEscalations...)
+	}
+	sort.Slice(escalations, func(i, j int) bool {
+		return escalations[i].CreatedAt.After(escalations[j].CreatedAt)
+	})
+	queue := escalations
+	if len(queue) > limit {
+		queue = queue[:limit]
+	}
+
+	residualRate := 0.0
+	if len(runs) > 0 {
+		residualRate = float64(len(escalations)) / float64(len(runs))
+	}
+
+	return ValidationDashboard{
+		TenantID:               tenantID,
+		TotalRuns:              len(runs),
+		StatusCounts:           statusCounts,
+		DecisionCounts:         decisionCounts,
+		TierCounts:             tierCounts,
+		StageIssueCounts:       stageIssueCounts,
+		RecentRuns:             recentRuns,
+		EscalationQueue:        queue,
+		EscalationResidualRate: residualRate,
+	}
 }
 
 func (s *Service) attachTaskContractLocked(req AttachTaskContractRequest) (TaskAcceptanceContract, error) {

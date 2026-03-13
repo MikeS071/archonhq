@@ -1804,6 +1804,72 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /v1/validation/dashboard:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get validation effectiveness and escalation dashboard
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Validation dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - validation_dashboard
+                properties:
+                  validation_dashboard:
+                    type: object
+                    properties:
+                      tenant_id:
+                        type: string
+                      total_runs:
+                        type: integer
+                      status_counts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      decision_counts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      tier_counts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      stage_issue_counts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      escalation_residual_rate:
+                        type: number
+                      escalation_queue:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            validation_run_id:
+                              type: string
+                            reason:
+                              type: string
+                            escalated_by_actor:
+                              type: string
+                            created_at:
+                              type: string
+                              format: date-time
+                      recent_runs:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ValidationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /v1/validation-runs/{validation_run_id}/stages:
     get:
       security:
@@ -2410,6 +2476,77 @@ paths:
                 properties:
                   replay:
                     $ref: "#/components/schemas/SimulationReplay"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/simulation/dashboard:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get simulation operator dashboard
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Simulation dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - simulation_dashboard
+                properties:
+                  simulation_dashboard:
+                    type: object
+                    properties:
+                      tenant_id:
+                        type: string
+                      total_runs:
+                        type: integer
+                      status_counts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      run_mode_counts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      scenario_counts:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      findings_by_severity:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      baselines_total:
+                        type: integer
+                      recent_runs:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/SimulationRun"
+                      risk_heatmap:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            scenario_id:
+                              type: string
+                            risk_score:
+                              type: number
+                            high_or_above_findings:
+                              type: integer
+                            total_findings:
+                              type: integer
+                            scheduler_starvation:
+                              type: number
+                            false_accept_penetration:
+                              type: number
+                            critic_monoculture_ratio:
+                              type: number
         default:
           description: Error
           content:

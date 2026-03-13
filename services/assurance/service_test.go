@@ -356,3 +356,54 @@ func TestAssuranceAdditionalBranches(t *testing.T) {
 		t.Fatalf("start validation with template and override: %v", err)
 	}
 }
+
+func TestValidationDashboard(t *testing.T) {
+	svc := New()
+	ctx := context.Background()
+
+	runFast, err := svc.StartValidationRun(ctx, StartValidationRunRequest{
+		TenantID:       "ten_01",
+		TaskID:         "task_dash_fast",
+		TaskFamily:     "code.patch",
+		ValidationTier: ValidationTierFast,
+		InlineContract: map[string]any{"k": "v"},
+	})
+	if err != nil {
+		t.Fatalf("start fast run: %v", err)
+	}
+	if _, err := svc.StartValidationRun(ctx, StartValidationRunRequest{
+		TenantID:       "ten_01",
+		TaskID:         "task_dash_std",
+		TaskFamily:     "code.patch",
+		ValidationTier: ValidationTierStandard,
+		InlineContract: map[string]any{"k": "v"},
+	}); err != nil {
+		t.Fatalf("start standard run: %v", err)
+	}
+
+	if _, err := svc.EscalateValidationRun(ctx, EscalateValidationRunRequest{
+		TenantID:         "ten_01",
+		ValidationRunID:  runFast.ValidationRunID,
+		Reason:           "manual_review",
+		EscalatedByActor: "user_approver",
+	}); err != nil {
+		t.Fatalf("escalate run: %v", err)
+	}
+
+	dashboard := svc.ValidationDashboard(ctx, "ten_01", 10)
+	if dashboard.TotalRuns != 2 {
+		t.Fatalf("total runs=%d want 2", dashboard.TotalRuns)
+	}
+	if dashboard.StatusCounts[RunStatusEscalated] != 1 {
+		t.Fatalf("expected one escalated run, got %d", dashboard.StatusCounts[RunStatusEscalated])
+	}
+	if dashboard.TierCounts[ValidationTierFast] != 1 || dashboard.TierCounts[ValidationTierStandard] != 1 {
+		t.Fatalf("unexpected tier counts: %+v", dashboard.TierCounts)
+	}
+	if len(dashboard.EscalationQueue) != 1 {
+		t.Fatalf("expected escalation queue length 1, got %d", len(dashboard.EscalationQueue))
+	}
+	if dashboard.EscalationResidualRate <= 0 {
+		t.Fatalf("expected positive escalation residual rate, got %f", dashboard.EscalationResidualRate)
+	}
+}

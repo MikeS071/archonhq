@@ -160,6 +160,28 @@ type Replay struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
+type RiskHeatmapCell struct {
+	ScenarioID             string  `json:"scenario_id"`
+	RiskScore              float64 `json:"risk_score"`
+	HighOrAboveFindings    int     `json:"high_or_above_findings"`
+	TotalFindings          int     `json:"total_findings"`
+	SchedulerStarvation    float64 `json:"scheduler_starvation"`
+	FalseAcceptPenetration float64 `json:"false_accept_penetration"`
+	CriticMonocultureRatio float64 `json:"critic_monoculture_ratio"`
+}
+
+type Dashboard struct {
+	TenantID           string            `json:"tenant_id"`
+	TotalRuns          int               `json:"total_runs"`
+	StatusCounts       map[string]int    `json:"status_counts"`
+	RunModeCounts      map[string]int    `json:"run_mode_counts"`
+	ScenarioCounts     map[string]int    `json:"scenario_counts"`
+	FindingsBySeverity map[string]int    `json:"findings_by_severity"`
+	BaselinesTotal     int               `json:"baselines_total"`
+	RecentRuns         []Run             `json:"recent_runs"`
+	RiskHeatmap        []RiskHeatmapCell `json:"risk_heatmap"`
+}
+
 type CreateScenarioRequest struct {
 	TenantID   string
 	ScenarioID string
@@ -744,6 +766,109 @@ func (s *Service) GetReplay(_ context.Context, tenantID, replayID string) (Repla
 	return replay, nil
 }
 
+func (s *Service) Dashboard(_ context.Context, tenantID string, limit int) Dashboard {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	runs := make([]Run, 0)
+	statusCounts := map[string]int{}
+	runModeCounts := map[string]int{}
+	scenarioCounts := map[string]int{}
+	findingsBySeverity := map[string]int{}
+	riskByScenario := map[string]RiskHeatmapCell{}
+	baselinesTotal := 0
+
+	for _, baseline := range s.baselines {
+		if baseline.TenantID != tenantID {
+			continue
+		}
+		baselinesTotal++
+	}
+
+	for _, run := range s.runs {
+		if run.TenantID != tenantID {
+			continue
+		}
+		runs = append(runs, run)
+		statusCounts[run.Status]++
+		runModeCounts[run.RunMode]++
+		scenarioCounts[run.ScenarioID]++
+
+		cell := riskByScenario[run.ScenarioID]
+		cell.ScenarioID = run.ScenarioID
+
+		for _, metric := range run.Metrics {
+			switch metric.Name {
+			case "scheduler_starvation":
+				if metric.Value > cell.SchedulerStarvation {
+					cell.SchedulerStarvation = metric.Value
+				}
+			case "false_accept_penetration":
+				if metric.Value > cell.FalseAcceptPenetration {
+					cell.FalseAcceptPenetration = metric.Value
+				}
+			case "critic_monoculture_ratio":
+				if metric.Value > cell.CriticMonocultureRatio {
+					cell.CriticMonocultureRatio = metric.Value
+				}
+			}
+		}
+
+		for _, finding := range run.Findings {
+			severity := strings.ToLower(strings.TrimSpace(finding.Severity))
+			findingsBySeverity[severity]++
+			cell.TotalFindings++
+			if severity == SeverityHigh || severity == SeverityCritical {
+				cell.HighOrAboveFindings++
+			}
+			if w := severityWeight(severity); w > cell.RiskScore {
+				cell.RiskScore = w
+			}
+		}
+
+		metricRisk := maxFloat(cell.SchedulerStarvation, cell.FalseAcceptPenetration, cell.CriticMonocultureRatio)
+		if metricRisk > cell.RiskScore {
+			cell.RiskScore = metricRisk
+		}
+		riskByScenario[run.ScenarioID] = cell
+	}
+
+	sort.Slice(runs, func(i, j int) bool {
+		return runs[i].CreatedAt.After(runs[j].CreatedAt)
+	})
+	recentRuns := runs
+	if len(recentRuns) > limit {
+		recentRuns = recentRuns[:limit]
+	}
+
+	riskHeatmap := make([]RiskHeatmapCell, 0, len(riskByScenario))
+	for _, cell := range riskByScenario {
+		riskHeatmap = append(riskHeatmap, cell)
+	}
+	sort.Slice(riskHeatmap, func(i, j int) bool {
+		if riskHeatmap[i].RiskScore == riskHeatmap[j].RiskScore {
+			return riskHeatmap[i].ScenarioID < riskHeatmap[j].ScenarioID
+		}
+		return riskHeatmap[i].RiskScore > riskHeatmap[j].RiskScore
+	})
+
+	return Dashboard{
+		TenantID:           tenantID,
+		TotalRuns:          len(runs),
+		StatusCounts:       statusCounts,
+		RunModeCounts:      runModeCounts,
+		ScenarioCounts:     scenarioCounts,
+		FindingsBySeverity: findingsBySeverity,
+		BaselinesTotal:     baselinesTotal,
+		RecentRuns:         recentRuns,
+		RiskHeatmap:        riskHeatmap,
+	}
+}
+
 func isRunMode(v string) bool {
 	switch strings.TrimSpace(v) {
 	case RunModeDeterministicStub, RunModeSampledSynthetic, RunModeRuntimeBacked:
@@ -751,6 +876,31 @@ func isRunMode(v string) bool {
 	default:
 		return false
 	}
+}
+
+func severityWeight(severity string) float64 {
+	switch strings.ToLower(strings.TrimSpace(severity)) {
+	case SeverityCritical:
+		return 1.0
+	case SeverityHigh:
+		return 0.8
+	case SeverityMedium:
+		return 0.5
+	case SeverityLow:
+		return 0.2
+	default:
+		return 0.1
+	}
+}
+
+func maxFloat(a float64, rest ...float64) float64 {
+	max := a
+	for _, v := range rest {
+		if v > max {
+			max = v
+		}
+	}
+	return max
 }
 
 func deterministicOutputs(scenarioID, seed string) ([]RunMetric, []RunFinding, []RunArtifact) {
