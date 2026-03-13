@@ -16,6 +16,12 @@ ArchonHQ is a platform for running a distributed workforce of AI agents with:
 
 It is an attempt to build the missing protocol and product layer between “agents can do tasks” and “agent work can be coordinated and trusted at scale.”
 
+The recommended product emphasis is now sharper: ArchonHQ should be treated as a trust, judgment, and assurance layer for distributed agent work, not only as a task distribution surface.
+
+The next directional expansion after that is a two-lane network:
+- a private lane for tenant-scoped work
+- an open market lane for pre-funded, policy-safe work that any eligible executor can claim or bid on
+
 At a high level, it combines four ideas:
 
 1. **A central work hub** that issues tasks, approves work, leases jobs to nodes, verifies results, merges outputs, and keeps the ledger.
@@ -28,6 +34,10 @@ The project is designed to support broad classes of agent work from the start, r
 - an orchestration platform,
 - a verification and reduction system,
 - and an accounting layer for agent labor.
+
+In market mode, the platform must protect both sides:
+- requesters from fraud, low-quality work, and data leakage
+- executors from non-payment, spec drift, and arbitrary rejection
 
 ## Why it exists
 
@@ -61,11 +71,15 @@ The system records durable append-only events in Postgres. These events are the 
 ### 4. Verification and reduction
 Instead of assuming every worker’s output is final, the system runs verifiers and reducers. Some tasks need the best result selected. Others need multiple partial outputs merged. Others need quorum or benchmark confirmation.
 
+This layer should evolve toward explicit acceptance contracts and stage-gated critics with veto authority rather than relying on generic post-hoc scoring alone.
+
 ### 5. Quality and reliability scoring
 Effort alone is not enough. A worker that burns compute but produces noisy or low-quality work should not be rewarded like a worker that consistently produces accepted, verifier-backed results.
 
 ### 6. Internal settlement
 The project defines an internal accounting model, not real payments yet. Workers earn **credited JouleWork**, adjusted by quality and reliability, and that credit flows into a ledger for the human operator.
+
+For open-market mode, internal settlement is not enough. A later milestone must add pre-funded work publication, escrow, payout rails, dispute handling, and requester trust controls without weakening the current private-lane defaults.
 
 ### 7. Synthetic proving ground
 Task-level correctness is not enough for this system. The platform also needs to understand how policies, pricing, schedulers, verifiers, and reducers behave as a system under scale, stress, and adversarial pressure. The proving ground provides replayable simulation runs, scenario baselines, and emergent-risk findings without polluting production state.
@@ -124,6 +138,10 @@ This is inspired by the idea of bounded experiment search: agents make controlle
 ## How the system is structured
 
 The project has five major planes.
+
+Two cross-cutting capability layers sit across those planes:
+- a **judgment layer** for acceptance contracts, critics, verification, and reduction
+- an **economics layer** for pricing, reliability, and settlement
 
 ## Control plane
 
@@ -209,6 +227,8 @@ It is responsible for:
 - and pre-production release gates for critical changes.
 
 It reuses core business logic where possible, but its data, events, artifacts, and reports remain isolated from production workflow state.
+
+The next assurance phase should specifically test acceptance-contract quality, critic diversity, and validation-tier routing before automation is widened.
 
 ## Why Hermes and Paperclip are in the design
 

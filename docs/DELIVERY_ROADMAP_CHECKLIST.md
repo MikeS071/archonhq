@@ -103,27 +103,51 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## M7 Advanced Workloads
 
-- [ ] Implement code patch merge flow strategies
-- [ ] Implement bounded autoresearch/self-improve workflow loop
-- [ ] Add guardrails for iteration limits, budget, and approval gates
-- [ ] Add evaluator/verifier hooks for iterative workloads
-- [ ] Add auditable experiment/result lineage views
-- [ ] Add simulation entry points for advanced workload policy and benchmark testing
-- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+- [x] Implement code patch merge flow strategies
+- [x] Implement bounded autoresearch/self-improve workflow loop
+- [x] Add guardrails for iteration limits, budget, and approval gates
+- [x] Add evaluator/verifier hooks for iterative workloads
+- [x] Add auditable experiment/result lineage views
+- [x] Add simulation entry points for advanced workload policy and benchmark testing
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+  - Current review report: `docs/reviews/M7_REVIEW_GATE.md` (M7 advanced workload scope complete)
 
 ## M8 Simulation and Assurance
 
 - [x] Complete M8 prep artifacts (`docs/SIMULATION_SPEC.md`, `docs/openapi/openapi.yaml`, `docs/M8_MIGRATION_SPEC.md`, `services/simulation/README.md`)
+- [ ] Add acceptance contract templates, versioning, and immutable per-task snapshots
+- [ ] Add validation-tier policy routing (`fast`, `standard`, `high_assurance`)
+- [ ] Add critic registry with stage, family, and failure-mode metadata
+- [ ] Implement stage-gated validation runs with veto/needs-review/escalation outcomes
+- [ ] Enforce critic diversity rules for high-assurance workloads
 - [ ] Add `services/simulation` service boundary and scenario registry
 - [ ] Implement dedicated simulation tables, read models, and event family
 - [ ] Implement replayable event-driven runs with fixed-seed support
 - [ ] Implement deterministic stub mode for CI and policy regression
 - [ ] Implement sampled synthetic mode for market and queue stress tests
-- [ ] Add required v1 scenarios (`scheduler_starvation_v1`, `verifier_collusion_v1`, `reducer_instability_v1`, `market_spam_attack_v1`, `approval_backlog_v1`, `research_false_consensus_v1`, `code_patch_merge_storm_v1`, `autosearch_reward_hacking_v1`, `incident_replay_v1`)
+- [ ] Add required v1 scenarios (`scheduler_starvation_v1`, `verifier_collusion_v1`, `reducer_instability_v1`, `market_spam_attack_v1`, `approval_backlog_v1`, `research_false_consensus_v1`, `code_patch_merge_storm_v1`, `autosearch_reward_hacking_v1`, `incident_replay_v1`, `critic_monoculture_v1`, `acceptance_contract_drift_v1`)
 - [ ] Implement baseline promotion and metric diffing
 - [ ] Implement findings generation and risk heatmaps
+- [ ] Add validation effectiveness dashboards and operator escalation views
 - [ ] Add simulation dashboards and operator views
-- [ ] Gate verifier/reducer/scheduler/pricing/reliability policy changes on simulation comparison
+- [ ] Gate verifier/reducer/scheduler/pricing/reliability/validation policy changes on simulation comparison
+- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+
+## M9 Open Market Network
+
+- [ ] Add market profiles for requesters and executors
+- [ ] Add work-class policy model (`public_open`, `public_sealed`, `restricted_market`, `private_tenant_only`)
+- [ ] Add market listing publication, cancel, and feed flows
+- [ ] Add claim, bid, and award mechanics for whole-task and shard work
+- [ ] Add funded reserve checks before listing publication
+- [ ] Add task escrow service and escrow transfer lifecycle
+- [ ] Add payout account model and payout request flow
+- [ ] Add dispute and arbitration service boundaries
+- [ ] Add requester trust and market reputation snapshots
+- [ ] Add anti-spam, anti-Sybil, and claim-hoarding controls
+- [ ] Add open-market dashboards for listings, claims, disputes, escrows, and payouts
+- [ ] Add market-mode simulation scenarios (`requester_default_v1`, `dispute_griefing_v1`, `sealed_task_leakage_v1`, `claim_hoarding_v1`)
+- [ ] Gate market-mode rollout on simulation comparison and dispute/payout readiness
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## Cross-Cutting Quality Gates
@@ -134,15 +158,19 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Security controls aligned to `docs/SECURITY_MODEL.md`
 - [ ] Secrets encrypted, tenant-scoped credentials enforced, and object storage namespace isolation validated
 - [ ] Observability coverage aligned to `docs/OBSERVABILITY_SPEC.md`
-- [ ] Key latency metrics implemented (`approval`, `lease`, `result submission`, `verification`, `reduction`, `settlement`)
-- [ ] Emergent-risk metrics implemented (`verifier disagreement`, `false accept penetration`, `reducer stability`, `queue amplification`, `scheduler starvation`, `market concentration`, `approval escape`)
+- [ ] Key latency metrics implemented (`approval`, `lease`, `result submission`, `verification`, `reduction`, `settlement`, `escrow_lock`, `payout`)
+- [ ] Emergent-risk metrics implemented (`verifier disagreement`, `false accept penetration`, `reducer stability`, `queue amplification`, `scheduler starvation`, `market concentration`, `approval escape`, `critic_monoculture_ratio`, `evidence_missing_rate`, `escalation_residual_rate`, `requester_default_rate`, `claim_abandonment_rate`, `sealed_work_leakage_incidents`, `dispute_overturn_rate`)
 - [ ] Policy model aligned to `docs/POLICY_SCHEMA.md`
 - [ ] NATS subjects and consumer groups aligned to `docs/NATS_SUBJECT_MAP.md`
 - [ ] Sequence flow fidelity aligned to `docs/SEQUENCE_DIAGRAMS.md`
 - [x] Test coverage progression aligned to `docs/TEST_PLAN.md`
 - [x] Contract tests present for Hermes adapter and Paperclip connector
+- [ ] Contract tests present for acceptance contract template, critic registry, and validation-run APIs
 - [ ] Contract tests present for simulation registry and run APIs
+- [ ] Contract tests present for market profile, listing, escrow, payout, and dispute APIs
 - [x] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
+- [ ] Security tests present for acceptance-contract override controls and raw-tool-output exposure policy
+- [ ] Security tests present for work-class publication controls, sealed-work access, and payout identity isolation
 - [ ] Replay approval enforcement and simulation namespace isolation validated
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
@@ -154,6 +182,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] M4 exit: scoring, pricing, ledger, and reserve flows operational
 - [x] M5 exit: Svelte operator workflows available for core operations
 - [x] M6 exit: Paperclip projections syncing from internal source-of-truth state
-- [ ] M7 exit: advanced merge and bounded self-improvement flows operational
+- [x] M7 exit: advanced merge and bounded self-improvement flows operational
 - [ ] M8 exit: simulation scenarios, replayable runs, baseline comparisons, and policy gates operational
+- [ ] M9 exit: funded open-market listings, escrow, disputes, payouts, and market-mode rollout gates operational
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase

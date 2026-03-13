@@ -34,7 +34,11 @@ The system must support:
 - Storage plane
 - Assurance plane
 
-### 2.3 Major technical choices
+### 2.3 Cross-cutting capability layers
+- Judgment layer
+- Economics layer
+
+### 2.4 Major technical choices
 - Backend: Go
 - Frontend: Svelte / SvelteKit / shadcn-svelte
 - Human auth: Clerk
@@ -74,6 +78,11 @@ The system must support:
 19. Optimize for clean long-term architecture and good UX.
 20. Built-in simulation/proving-ground support is required before critical policy automation is widened.
 21. Simulation state must remain isolated from production workflow truth.
+22. Tasks that require trusted acceptance must carry explicit acceptance contracts or approved contract templates.
+23. Stage-gated critics with veto authority are required for validation-heavy workloads before broader automation widening.
+24. Validation depth must be policy-routed across `fast`, `standard`, and `high_assurance` tiers.
+25. Open-market mode is a post-v1 capability and must not ship without escrow, payout, dispute, requester-trust, and work-class controls.
+26. Private-lane and open-market-lane policies must remain separable so sensitive work does not inherit public-market assumptions.
 
 ## 4. Problem statement
 
@@ -133,6 +142,13 @@ Use as inspiration for:
 12. Keep service boundaries clean
 13. Reuse business logic across production and simulation where feasible
 14. Never mix simulation writes with production workflow truth
+15. Pre-declare acceptance criteria before execution where trusted acceptance is required
+16. Producers do not self-certify completion for accepted state transitions
+17. Prefer orthogonal critics over redundant critics
+18. Keep reasoning context separate from raw execution output wherever feasible
+19. Open-market work must be pre-funded before public publication
+20. Acceptance, payout, and dispute rules must be snapshot-consistent for each market listing
+21. Public-market eligibility is determined by explicit work class, not by requester preference alone
 
 ## 7. Major product features
 
@@ -148,10 +164,13 @@ Use as inspiration for:
 - task creation
 - task discovery/feed
 - approval gates
+- acceptance contract attachment and template usage
+- validation tier routing
 - fixed-price or bid-based execution
 - redundancy/competition
 - verifier and reducer tasks
 - recursive decomposition
+- open-market listing modes, claims, and bids (post-v1)
 
 ### 7.3 Worker node runtime
 - node registration
@@ -181,6 +200,7 @@ Use as inspiration for:
 - pricing resolution
 - internal ledger posting
 - reserve holds
+- market escrow and payout rails (post-v1)
 
 ### 7.6 Assurance and simulation
 - versioned scenario registry
@@ -190,6 +210,23 @@ Use as inspiration for:
 - emergent-risk findings
 - baseline promotion
 - rollout gates for high-impact changes
+- validation-policy gates for acceptance contracts, critic diversity, and tier routing
+
+### 7.7 Judgment layer
+- acceptance contract templates and snapshots
+- critic registry by stage, family, and failure-mode class
+- stage-gated validation runs
+- tiered validation (`fast`, `standard`, `high_assurance`)
+- auditable escalation from critic rejection or review-needed outcomes
+
+### 7.8 Open market network
+- market profiles for requesters and executors
+- work classes (`public_open`, `public_sealed`, `restricted_market`, `private_tenant_only`)
+- listing publication, claims, bids, and shard markets
+- requester funding accounts and task escrow
+- payout accounts and payout requests
+- dispute and arbitration workflows
+- requester and executor reputation for market mode
 
 ## 8. Roles and access model
 
@@ -257,6 +294,11 @@ Merge:
 
 Verifier:
 - schema, factuality, duplication
+
+Acceptance expectations:
+- evidence completeness contract
+- output correctness contract
+- optional high-assurance policy and security critics for sensitive data sources
 
 ### 11.2 doc.section.write
 Input:

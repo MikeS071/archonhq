@@ -46,8 +46,22 @@
 ## M8 Simulation and Assurance
 
 - Prep artifacts complete (`docs/M8_PREP_WORK.md`, `docs/M8_MIGRATION_SPEC.md`, `docs/openapi/openapi.yaml`)
+- Acceptance contract templates and task snapshot model
+- Validation tier routing and critic diversity policy
+- Critic registry and stage-gated validation orchestration
 - Simulation service and scenario registry
 - Replayable event-driven runs
 - Baseline promotion and diffing
 - Emergent-risk metrics and findings
-- Policy rollout gates for critical changes
+- Policy rollout gates for critical changes, including validation-policy widening
+
+## M9 Open Market Network
+
+- Market profiles for requesters and executors
+- Work classes and publication controls
+- Listing publication, bids, claims, and shard market flows
+- Funded reserve checks and task escrow lifecycle
+- Payout accounts and payout request flow
+- Dispute and arbitration service boundaries
+- Market reputation and anti-abuse controls
+- Market-mode simulation scenarios and rollout gates

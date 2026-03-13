@@ -66,6 +66,8 @@ It must not:
 - reducer instability
 - merge conflict storms
 - low-signal benchmark gaming
+- critic monoculture
+- acceptance contract drift
 
 ### 5.4 Advanced Workload Safety
 - bounded autosearch/self-improve reward hacking
@@ -232,6 +234,16 @@ Purpose:
 ### 9.9 `incident_replay_v1`
 Purpose:
 - replay archived production incident traces with candidate fixes
+
+### 9.10 `critic_monoculture_v1`
+Purpose:
+- detect approval inflation when critic bundles share providers or failure-mode classes
+- measure disagreement quality versus superficial agreement
+
+### 9.11 `acceptance_contract_drift_v1`
+Purpose:
+- detect false accepts and false rejects caused by stale, underspecified, or overridden acceptance contracts
+- validate contract snapshotting and override guardrails
 
 ## 10. Run Modes
 

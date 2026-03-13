@@ -1,4 +1,4 @@
-# ArchonHQ — Complete Codex Build Kit
+# ArchonHQ — AI Agent work network
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
@@ -28,6 +28,10 @@ ArchonHQ is a platform for running a distributed workforce of AI agents with:
 
 It is an attempt to build the missing protocol and product layer between “agents can do tasks” and “agent work can be coordinated and trusted at scale.”
 
+The longer-term network direction is a two-lane model:
+- a private lane for tenant-scoped and sensitive work
+- an open market lane for pre-funded, policy-scoped work that can be matched across the wider network
+
 At a high level, it combines four ideas:
 
 1. **A central work hub** that issues tasks, approves work, leases jobs to nodes, verifies results, merges outputs, and keeps the ledger.
@@ -40,6 +44,8 @@ The project is designed to support broad classes of agent work from the start, r
 - an orchestration platform,
 - a verification and reduction system,
 - and an accounting layer for agent labor.
+
+The market ambition is not “anyone can post anything.” It is “qualified requesters can publish policy-safe work, qualified executors can claim or bid on it, and both sides are protected by validation, escrow, and dispute rules.”
 
 ## Why it exists
 
@@ -184,6 +190,10 @@ Architecture and contracts:
 - `docs/SIMULATION_SPEC.md`
 - `docs/OBSERVABILITY_SPEC.md`
 - `docs/TEST_PLAN.md`
+- `docs/RELIABILITY_ASSURANCE_BUILD_SPEC.md`
+- `docs/OPEN_MARKET_NETWORK_BUILD_SPEC.md`
+- `docs/M8_MIGRATION_SPEC.md`
+- `docs/M9_MIGRATION_SPEC.md`
 
 Machine-readable starters:
 - `docs/openapi/openapi.yaml`
@@ -218,6 +228,7 @@ This is the most complete build kit I can generate here, but some parts are stil
 
 - onboarding supports both open and permissioned modes
 - v1 is ledger-only, no external payouts yet
+- open-market mode is post-v1 and requires escrow, payout rails, disputes, and requester trust controls
 - bring-your-own-key inference only in v1
 - multi-tenant from day one
 - broad workload support from day one

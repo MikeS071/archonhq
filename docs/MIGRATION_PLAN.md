@@ -18,8 +18,10 @@
 - M3: add runtime execution, artifact metadata, and signature verification constraints.
 - M4: add economics tables refinements for pricing/ledger/reserves.
 - M5+: add UI support read models and integration tracking tables as needed.
-- M8: add simulation tables, read models, and isolation constraints.
+- M8: add acceptance-contract, validation, and simulation tables, read models, and isolation constraints.
   - Detailed migration breakdown: `docs/M8_MIGRATION_SPEC.md`.
+- M9: add market-mode profiles, listings, escrow, payouts, disputes, and market read models.
+  - Detailed migration breakdown: `docs/M9_MIGRATION_SPEC.md`.
 
 3. Data safety rules
 - All migration scripts must be idempotent for retries where possible.
@@ -39,11 +41,28 @@
 
 ## Planned M8 Migration Files
 
-- `migrations/005_simulation_schema_core.up.sql`
-- `migrations/005_simulation_schema_core.down.sql`
-- `migrations/006_simulation_schema_runtime.up.sql`
-- `migrations/006_simulation_schema_runtime.down.sql`
-- `migrations/007_simulation_indexes_and_isolation.up.sql`
-- `migrations/007_simulation_indexes_and_isolation.down.sql`
-- `migrations/008_simulation_read_models.up.sql`
-- `migrations/008_simulation_read_models.down.sql`
+- `migrations/005_acceptance_contracts_core.up.sql`
+- `migrations/005_acceptance_contracts_core.down.sql`
+- `migrations/006_validation_pipeline_core.up.sql`
+- `migrations/006_validation_pipeline_core.down.sql`
+- `migrations/007_validation_indexes_and_read_models.up.sql`
+- `migrations/007_validation_indexes_and_read_models.down.sql`
+- `migrations/008_simulation_schema_core.up.sql`
+- `migrations/008_simulation_schema_core.down.sql`
+- `migrations/009_simulation_schema_runtime.up.sql`
+- `migrations/009_simulation_schema_runtime.down.sql`
+- `migrations/010_simulation_indexes_and_isolation.up.sql`
+- `migrations/010_simulation_indexes_and_isolation.down.sql`
+- `migrations/011_simulation_read_models.up.sql`
+- `migrations/011_simulation_read_models.down.sql`
+
+## Planned M9 Migration Files
+
+- `migrations/012_market_profiles_and_listings_core.up.sql`
+- `migrations/012_market_profiles_and_listings_core.down.sql`
+- `migrations/013_market_claims_bids_and_reputation.up.sql`
+- `migrations/013_market_claims_bids_and_reputation.down.sql`
+- `migrations/014_escrow_and_payout_core.up.sql`
+- `migrations/014_escrow_and_payout_core.down.sql`
+- `migrations/015_market_disputes_and_read_models.up.sql`
+- `migrations/015_market_disputes_and_read_models.down.sql`
