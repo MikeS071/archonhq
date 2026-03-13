@@ -155,3 +155,9 @@
 - scenario versions are immutable after publish
 - simulation artifacts are isolated from production artifact namespaces
 - replaying sensitive production traces requires explicit approval and audit logging
+
+## Paperclip integration API rules
+- all projection payloads declare `source_of_truth=postgres`
+- Paperclip is projection target only and never authoritative for workflow truth
+- sync endpoint returns surface counts for workspace, approvals, fleet, reliability, and settlements
+- status endpoint reports latest sync event state for tenant-scoped operational visibility

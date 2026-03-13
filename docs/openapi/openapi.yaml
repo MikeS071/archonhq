@@ -534,6 +534,89 @@ components:
         sensitive_source:
           type: boolean
           default: false
+    CreatePaperclipSyncRequest:
+      type: object
+      properties:
+        sync_id:
+          type: string
+        dry_run:
+          type: boolean
+          default: false
+        force:
+          type: boolean
+          default: false
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 50
+    PaperclipSyncResponse:
+      type: object
+      required:
+        - sync_id
+        - status
+        - source_of_truth
+      properties:
+        sync_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - requested
+            - completed
+            - dry_run
+            - failed
+        external_ref:
+          type: string
+        source_of_truth:
+          type: string
+          enum:
+            - postgres
+        paperclip_authoritative:
+          type: boolean
+        surface_counts:
+          type: object
+          additionalProperties:
+            type: integer
+        generated_at:
+          type: string
+          format: date-time
+    PaperclipStatusResponse:
+      type: object
+      required:
+        - integration
+        - status
+        - source_of_truth
+      properties:
+        integration:
+          type: string
+          enum:
+            - paperclip
+        status:
+          type: string
+        last_event_id:
+          type: string
+        last_event_type:
+          type: string
+        last_sync_id:
+          type: string
+        last_external_ref:
+          type: string
+        last_surface_counts:
+          type: object
+          additionalProperties:
+            type: integer
+        last_error:
+          type: string
+        last_sync_at:
+          type: string
+          format: date-time
+        source_of_truth:
+          type: string
+          enum:
+            - postgres
+        paperclip_authoritative:
+          type: boolean
 paths:
   /v1/tasks:
     post:
@@ -1123,6 +1206,50 @@ paths:
                 properties:
                   replay:
                     $ref: "#/components/schemas/SimulationReplay"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/integrations/paperclip/sync:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Sync projection surfaces to Paperclip
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaperclipSyncRequest"
+      responses:
+        "202":
+          description: Sync accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperclipSyncResponse"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/integrations/paperclip/status:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get latest Paperclip integration sync status
+      responses:
+        "200":
+          description: Current integration status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperclipStatusResponse"
         default:
           description: Error
           content:

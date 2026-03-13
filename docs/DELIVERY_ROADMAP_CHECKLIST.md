@@ -92,13 +92,14 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## M6 Integrations
 
-- [ ] Implement Paperclip connector service boundary
-- [ ] Sync workspace summary projections to Paperclip surfaces
-- [ ] Sync approval queue and ticket/task projection state
-- [ ] Sync fleet heartbeat summaries
-- [ ] Sync settlement/reliability projection metrics
-- [ ] Ensure Paperclip is never used as durable source of truth
-- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+- [x] Implement Paperclip connector service boundary
+- [x] Sync workspace summary projections to Paperclip surfaces
+- [x] Sync approval queue and ticket/task projection state
+- [x] Sync fleet heartbeat summaries
+- [x] Sync settlement/reliability projection metrics
+- [x] Ensure Paperclip is never used as durable source of truth
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+  - Current review report: `docs/reviews/M6_REVIEW_GATE.md` (M6 integration scope complete)
 
 ## M7 Advanced Workloads
 
@@ -139,7 +140,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] NATS subjects and consumer groups aligned to `docs/NATS_SUBJECT_MAP.md`
 - [ ] Sequence flow fidelity aligned to `docs/SEQUENCE_DIAGRAMS.md`
 - [x] Test coverage progression aligned to `docs/TEST_PLAN.md`
-- [ ] Contract tests present for Hermes adapter and Paperclip connector
+- [x] Contract tests present for Hermes adapter and Paperclip connector
 - [ ] Contract tests present for simulation registry and run APIs
 - [x] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
 - [ ] Replay approval enforcement and simulation namespace isolation validated
@@ -152,7 +153,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] M3 exit: worker runtime can execute, upload artifacts, and submit signed results
 - [x] M4 exit: scoring, pricing, ledger, and reserve flows operational
 - [x] M5 exit: Svelte operator workflows available for core operations
-- [ ] M6 exit: Paperclip projections syncing from internal source-of-truth state
+- [x] M6 exit: Paperclip projections syncing from internal source-of-truth state
 - [ ] M7 exit: advanced merge and bounded self-improvement flows operational
 - [ ] M8 exit: simulation scenarios, replayable runs, baseline comparisons, and policy gates operational
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase

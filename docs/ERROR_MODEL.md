@@ -32,6 +32,8 @@
 - simulation_replay_requires_approval
 - simulation_budget_exceeded
 - simulation_isolation_violation
+- integration_sync_failed
+- integration_status_failed
 - insufficient_budget
 - invalid_signature
 - node_registration_failed
