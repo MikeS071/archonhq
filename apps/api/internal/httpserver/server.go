@@ -22,6 +22,8 @@ import (
 	"github.com/MikeS071/archonhq/pkg/objectstore"
 	redisclient "github.com/MikeS071/archonhq/pkg/redis"
 	"github.com/MikeS071/archonhq/pkg/telemetry"
+	assurancesvc "github.com/MikeS071/archonhq/services/assurance"
+	simulationsvc "github.com/MikeS071/archonhq/services/simulation"
 )
 
 type Server struct {
@@ -31,6 +33,8 @@ type Server struct {
 	redis       *redisclient.Client
 	objectStore *objectstore.Client
 	events      events.Store
+	assurance   *assurancesvc.Service
+	simulation  *simulationsvc.Service
 }
 
 func New(
@@ -48,6 +52,8 @@ func New(
 		redis:       redis,
 		objectStore: objectStore,
 		events:      eventStore,
+		assurance:   assurancesvc.New(),
+		simulation:  simulationsvc.New(),
 	}
 }
 
@@ -83,6 +89,21 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/tasks/{task_id}/cancel", auth.RequireHuman(http.HandlerFunc(s.handleCancelTaskV2)))
 	mux.Handle("POST /v1/tasks/{task_id}/decompose", auth.RequireHuman(http.HandlerFunc(s.handleTaskDecomposeV2)))
 	mux.Handle("GET /v1/tasks/{task_id}/market", auth.RequireHuman(http.HandlerFunc(s.handleTaskMarketV2)))
+	mux.Handle("POST /v1/acceptance-contract-templates", auth.RequireHuman(http.HandlerFunc(s.handleCreateAcceptanceContractTemplateV2)))
+	mux.Handle("GET /v1/acceptance-contract-templates", auth.RequireHuman(http.HandlerFunc(s.handleListAcceptanceContractTemplatesV2)))
+	mux.Handle("GET /v1/acceptance-contract-templates/{template_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetAcceptanceContractTemplateV2)))
+	mux.Handle("POST /v1/acceptance-contract-templates/{template_id}/versions", auth.RequireHuman(http.HandlerFunc(s.handleCreateAcceptanceContractTemplateVersionV2)))
+	mux.Handle("POST /v1/acceptance-contract-templates/{template_id}/publish", auth.RequireHuman(http.HandlerFunc(s.handlePublishAcceptanceContractTemplateV2)))
+	mux.Handle("GET /v1/critics", auth.RequireHuman(http.HandlerFunc(s.handleListCriticsV2)))
+	mux.Handle("GET /v1/critics/{critic_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetCriticV2)))
+	mux.Handle("POST /v1/critics", auth.RequireHuman(http.HandlerFunc(s.handleCreateCriticV2)))
+	mux.Handle("POST /v1/critics/{critic_id}/versions", auth.RequireHuman(http.HandlerFunc(s.handleCreateCriticVersionV2)))
+	mux.Handle("POST /v1/critics/{critic_id}/publish", auth.RequireHuman(http.HandlerFunc(s.handlePublishCriticV2)))
+	mux.Handle("POST /v1/tasks/{task_id}/validation-runs", auth.RequireHuman(http.HandlerFunc(s.handleStartValidationRunV2)))
+	mux.Handle("GET /v1/tasks/{task_id}/validation-runs", auth.RequireHuman(http.HandlerFunc(s.handleListTaskValidationRunsV2)))
+	mux.Handle("GET /v1/validation-runs/{validation_run_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetValidationRunV2)))
+	mux.Handle("GET /v1/validation-runs/{validation_run_id}/stages", auth.RequireHuman(http.HandlerFunc(s.handleValidationRunStagesV2)))
+	mux.Handle("POST /v1/validation-runs/{validation_run_id}/escalate", auth.RequireHuman(http.HandlerFunc(s.handleEscalateValidationRunV2)))
 
 	mux.Handle("GET /v1/approvals/queue", auth.RequireHuman(http.HandlerFunc(s.handleApprovalQueueV2)))
 	mux.Handle("GET /v1/approvals/{approval_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetApprovalV2)))
@@ -128,6 +149,25 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("PATCH /v1/policies/{policy_id}", auth.RequireHuman(http.HandlerFunc(s.handlePatchPolicyV2)))
 	mux.Handle("POST /v1/integrations/paperclip/sync", auth.RequireHuman(http.HandlerFunc(s.handlePaperclipSyncV2)))
 	mux.Handle("GET /v1/integrations/paperclip/status", auth.RequireHuman(http.HandlerFunc(s.handlePaperclipStatusV2)))
+	mux.Handle("POST /v1/simulation/scenarios", auth.RequireHuman(http.HandlerFunc(s.handleCreateSimulationScenarioV2)))
+	mux.Handle("GET /v1/simulation/scenarios", auth.RequireHuman(http.HandlerFunc(s.handleListSimulationScenariosV2)))
+	mux.Handle("GET /v1/simulation/scenarios/{scenario_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetSimulationScenarioV2)))
+	mux.Handle("POST /v1/simulation/scenarios/{scenario_id}/versions", auth.RequireHuman(http.HandlerFunc(s.handleCreateSimulationScenarioVersionV2)))
+	mux.Handle("POST /v1/simulation/scenarios/{scenario_id}/publish", auth.RequireHuman(http.HandlerFunc(s.handlePublishSimulationScenarioV2)))
+	mux.Handle("POST /v1/simulation/runs", auth.RequireHuman(http.HandlerFunc(s.handleStartSimulationRunV2)))
+	mux.Handle("GET /v1/simulation/runs", auth.RequireHuman(http.HandlerFunc(s.handleListSimulationRunsV2)))
+	mux.Handle("GET /v1/simulation/runs/{run_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetSimulationRunV2)))
+	mux.Handle("POST /v1/simulation/runs/{run_id}/cancel", auth.RequireHuman(http.HandlerFunc(s.handleCancelSimulationRunV2)))
+	mux.Handle("GET /v1/simulation/runs/{run_id}/events", auth.RequireHuman(http.HandlerFunc(s.handleSimulationRunEventsV2)))
+	mux.Handle("GET /v1/simulation/runs/{run_id}/metrics", auth.RequireHuman(http.HandlerFunc(s.handleSimulationRunMetricsV2)))
+	mux.Handle("GET /v1/simulation/runs/{run_id}/findings", auth.RequireHuman(http.HandlerFunc(s.handleSimulationRunFindingsV2)))
+	mux.Handle("GET /v1/simulation/runs/{run_id}/artifacts", auth.RequireHuman(http.HandlerFunc(s.handleSimulationRunArtifactsV2)))
+	mux.Handle("POST /v1/simulation/runs/{run_id}/promote-baseline", auth.RequireHuman(http.HandlerFunc(s.handlePromoteSimulationBaselineV2)))
+	mux.Handle("GET /v1/simulation/baselines", auth.RequireHuman(http.HandlerFunc(s.handleListSimulationBaselinesV2)))
+	mux.Handle("GET /v1/simulation/baselines/{baseline_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetSimulationBaselineV2)))
+	mux.Handle("POST /v1/simulation/compare", auth.RequireHuman(http.HandlerFunc(s.handleCompareSimulationRunsV2)))
+	mux.Handle("POST /v1/simulation/replays", auth.RequireHuman(http.HandlerFunc(s.handleRequestSimulationReplayV2)))
+	mux.Handle("GET /v1/simulation/replays/{replay_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetSimulationReplayV2)))
 
 	return s.withCorrelationID(s.withIdempotencyValidation(mux))
 }

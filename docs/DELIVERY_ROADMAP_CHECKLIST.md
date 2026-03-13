@@ -115,19 +115,19 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 ## M8 Simulation and Assurance
 
 - [x] Complete M8 prep artifacts (`docs/SIMULATION_SPEC.md`, `docs/openapi/openapi.yaml`, `docs/M8_MIGRATION_SPEC.md`, `services/simulation/README.md`)
-- [ ] Add acceptance contract templates, versioning, and immutable per-task snapshots
-- [ ] Add validation-tier policy routing (`fast`, `standard`, `high_assurance`)
-- [ ] Add critic registry with stage, family, and failure-mode metadata
-- [ ] Implement stage-gated validation runs with veto/needs-review/escalation outcomes
-- [ ] Enforce critic diversity rules for high-assurance workloads
-- [ ] Add `services/simulation` service boundary and scenario registry
-- [ ] Implement dedicated simulation tables, read models, and event family
-- [ ] Implement replayable event-driven runs with fixed-seed support
-- [ ] Implement deterministic stub mode for CI and policy regression
+- [x] Add acceptance contract templates, versioning, and immutable per-task snapshots
+- [x] Add validation-tier policy routing (`fast`, `standard`, `high_assurance`)
+- [x] Add critic registry with stage, family, and failure-mode metadata
+- [x] Implement stage-gated validation runs with veto/needs-review/escalation outcomes
+- [x] Enforce critic diversity rules for high-assurance workloads
+- [x] Add `services/simulation` service boundary and scenario registry
+- [x] Implement dedicated simulation tables, read models, and event family
+- [x] Implement replayable event-driven runs with fixed-seed support
+- [x] Implement deterministic stub mode for CI and policy regression
 - [ ] Implement sampled synthetic mode for market and queue stress tests
 - [ ] Add required v1 scenarios (`scheduler_starvation_v1`, `verifier_collusion_v1`, `reducer_instability_v1`, `market_spam_attack_v1`, `approval_backlog_v1`, `research_false_consensus_v1`, `code_patch_merge_storm_v1`, `autosearch_reward_hacking_v1`, `incident_replay_v1`, `critic_monoculture_v1`, `acceptance_contract_drift_v1`)
-- [ ] Implement baseline promotion and metric diffing
-- [ ] Implement findings generation and risk heatmaps
+- [x] Implement baseline promotion and metric diffing
+- [x] Implement findings generation and risk heatmaps
 - [ ] Add validation effectiveness dashboards and operator escalation views
 - [ ] Add simulation dashboards and operator views
 - [ ] Gate verifier/reducer/scheduler/pricing/reliability/validation policy changes on simulation comparison
@@ -153,7 +153,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## Cross-Cutting Quality Gates
 
-- [ ] API contracts aligned to `docs/API_CONTRACTS.md` and `docs/openapi/openapi.yaml`
+- [x] API contracts aligned to `docs/API_CONTRACTS.md` and `docs/openapi/openapi.yaml`
 - [x] Mutating API routes enforce idempotency-key semantics and emit correlation IDs
 - [x] Error envelope and codes aligned to `docs/ERROR_MODEL.md`
 - [ ] Security controls aligned to `docs/SECURITY_MODEL.md`
@@ -166,13 +166,13 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [ ] Sequence flow fidelity aligned to `docs/SEQUENCE_DIAGRAMS.md`
 - [x] Test coverage progression aligned to `docs/TEST_PLAN.md`
 - [x] Contract tests present for Hermes adapter and Paperclip connector
-- [ ] Contract tests present for acceptance contract template, critic registry, and validation-run APIs
-- [ ] Contract tests present for simulation registry and run APIs
+- [x] Contract tests present for acceptance contract template, critic registry, and validation-run APIs
+- [x] Contract tests present for simulation registry and run APIs
 - [ ] Contract tests present for market profile, listing, escrow, payout, and dispute APIs
 - [x] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
 - [ ] Security tests present for acceptance-contract override controls and raw-tool-output exposure policy
 - [ ] Security tests present for work-class publication controls, sealed-work access, and payout identity isolation
-- [ ] Replay approval enforcement and simulation namespace isolation validated
+- [x] Replay approval enforcement and simulation namespace isolation validated
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
 
 ## Milestone Exit Criteria

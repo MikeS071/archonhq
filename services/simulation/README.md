@@ -43,9 +43,9 @@ services/simulation/
 
 ## Phase 1 Deliverables
 
-- Deterministic stub mode only.
-- Scenario create/list/get + version + publish APIs.
-- Run create/list/get + cancel APIs.
-- Run events/metrics/findings/artifacts read APIs.
-- Baseline promote/list/get + compare API.
-- Replay request/get API with approval-gated path for sensitive sources.
+- [x] Deterministic stub mode only.
+- [x] Scenario create/list/get + version + publish APIs.
+- [x] Run create/list/get + cancel APIs.
+- [x] Run events/metrics/findings/artifacts read APIs.
+- [x] Baseline promote/list/get + compare API.
+- [x] Replay request/get API with approval-gated path for sensitive sources.

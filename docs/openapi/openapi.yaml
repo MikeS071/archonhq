@@ -45,6 +45,24 @@ components:
       required: true
       schema:
         type: string
+    TemplateId:
+      in: path
+      name: template_id
+      required: true
+      schema:
+        type: string
+    CriticId:
+      in: path
+      name: critic_id
+      required: true
+      schema:
+        type: string
+    ValidationRunId:
+      in: path
+      name: validation_run_id
+      required: true
+      schema:
+        type: string
     Limit:
       in: query
       name: limit
@@ -101,6 +119,19 @@ components:
           type: array
           items:
             type: string
+        acceptance_contract_template_id:
+          type: string
+        acceptance_contract_template_version:
+          type: integer
+        validation_tier:
+          type: string
+          enum:
+            - fast
+            - standard
+            - high_assurance
+        acceptance_contract:
+          type: object
+          additionalProperties: true
     ResultClaim:
       type: object
       required:
@@ -372,6 +403,213 @@ components:
           items:
             type: object
             additionalProperties: true
+    AcceptanceContractTemplate:
+      type: object
+      required:
+        - tenant_id
+        - template_id
+        - task_family
+        - name
+        - status
+      properties:
+        tenant_id:
+          type: string
+        template_id:
+          type: string
+        task_family:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+            - published
+            - archived
+        published_version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AcceptanceContractTemplateVersion:
+      type: object
+      required:
+        - tenant_id
+        - template_id
+        - version
+        - contract
+      properties:
+        tenant_id:
+          type: string
+        template_id:
+          type: string
+        version:
+          type: integer
+        contract:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    Critic:
+      type: object
+      required:
+        - tenant_id
+        - critic_id
+        - stage_name
+        - task_family
+        - critic_class
+        - provider_family
+        - failure_mode_class
+        - enabled
+        - status
+      properties:
+        tenant_id:
+          type: string
+        critic_id:
+          type: string
+        name:
+          type: string
+        stage_name:
+          type: string
+          enum:
+            - plan
+            - execution
+            - artifact
+            - output
+            - policy
+            - security
+            - benchmark
+            - reduction
+        task_family:
+          type: string
+        critic_class:
+          type: string
+        provider_family:
+          type: string
+        failure_mode_class:
+          type: string
+        enabled:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - draft
+            - published
+            - archived
+        published_version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CriticVersion:
+      type: object
+      required:
+        - tenant_id
+        - critic_id
+        - version
+      properties:
+        tenant_id:
+          type: string
+        critic_id:
+          type: string
+        version:
+          type: integer
+        config:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    ValidationStageResult:
+      type: object
+      required:
+        - stage_order
+        - stage_name
+        - decision
+      properties:
+        stage_order:
+          type: integer
+        stage_name:
+          type: string
+        critic_id:
+          type: string
+        critic_class:
+          type: string
+        decision:
+          type: string
+          enum:
+            - accepted
+            - rejected
+            - needs_review
+        score:
+          type: number
+        evidence_refs:
+          type: array
+          items:
+            type: string
+        occurred_at:
+          type: string
+          format: date-time
+    ValidationRun:
+      type: object
+      required:
+        - validation_run_id
+        - tenant_id
+        - task_id
+        - task_family
+        - validation_tier
+        - status
+        - decision
+      properties:
+        validation_run_id:
+          type: string
+        tenant_id:
+          type: string
+        task_id:
+          type: string
+        task_family:
+          type: string
+        result_reference:
+          type: string
+        validation_tier:
+          type: string
+          enum:
+            - fast
+            - standard
+            - high_assurance
+        status:
+          type: string
+          enum:
+            - completed
+            - needs_review
+            - rejected
+            - escalated
+        decision:
+          type: string
+          enum:
+            - accepted
+            - rejected
+            - needs_review
+        acceptance_contract:
+          type: object
+          additionalProperties: true
+        stage_results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationStageResult"
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
     SimulationScenario:
       type: object
       required:
@@ -1136,6 +1374,498 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /v1/acceptance-contract-templates:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create acceptance contract template
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - task_family
+                - name
+              properties:
+                template_id:
+                  type: string
+                task_family:
+                  type: string
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Template created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template:
+                    $ref: "#/components/schemas/AcceptanceContractTemplate"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    get:
+      security:
+        - clerkBearer: []
+      summary: List acceptance contract templates
+      responses:
+        "200":
+          description: Templates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AcceptanceContractTemplate"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/acceptance-contract-templates/{template_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get acceptance contract template
+      parameters:
+        - $ref: "#/components/parameters/TemplateId"
+      responses:
+        "200":
+          description: Template
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template:
+                    $ref: "#/components/schemas/AcceptanceContractTemplate"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/acceptance-contract-templates/{template_id}/versions:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create acceptance contract template version
+      parameters:
+        - $ref: "#/components/parameters/TemplateId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+                - contract
+              properties:
+                version:
+                  type: integer
+                contract:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Template version created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template_version:
+                    $ref: "#/components/schemas/AcceptanceContractTemplateVersion"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/acceptance-contract-templates/{template_id}/publish:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Publish acceptance contract template version
+      parameters:
+        - $ref: "#/components/parameters/TemplateId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+              properties:
+                version:
+                  type: integer
+      responses:
+        "200":
+          description: Template published
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/critics:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create critic registry entry
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - stage_name
+                - task_family
+                - critic_class
+                - provider_family
+                - failure_mode_class
+              properties:
+                critic_id:
+                  type: string
+                name:
+                  type: string
+                stage_name:
+                  type: string
+                task_family:
+                  type: string
+                critic_class:
+                  type: string
+                provider_family:
+                  type: string
+                failure_mode_class:
+                  type: string
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Critic created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  critic:
+                    $ref: "#/components/schemas/Critic"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    get:
+      security:
+        - clerkBearer: []
+      summary: List critics
+      responses:
+        "200":
+          description: Critics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  critics:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Critic"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/critics/{critic_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get critic
+      parameters:
+        - $ref: "#/components/parameters/CriticId"
+      responses:
+        "200":
+          description: Critic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  critic:
+                    $ref: "#/components/schemas/Critic"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/critics/{critic_id}/versions:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create critic version
+      parameters:
+        - $ref: "#/components/parameters/CriticId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+              properties:
+                version:
+                  type: integer
+                config:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Critic version created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  critic_version:
+                    $ref: "#/components/schemas/CriticVersion"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/critics/{critic_id}/publish:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Publish critic version
+      parameters:
+        - $ref: "#/components/parameters/CriticId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - version
+              properties:
+                version:
+                  type: integer
+      responses:
+        "200":
+          description: Critic published
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/tasks/{task_id}/validation-runs:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Start stage-gated validation run
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - task_family
+              properties:
+                task_family:
+                  type: string
+                validation_tier:
+                  type: string
+                  enum:
+                    - fast
+                    - standard
+                    - high_assurance
+                template_id:
+                  type: string
+                template_version:
+                  type: integer
+                acceptance_contract:
+                  type: object
+                  additionalProperties: true
+                result_reference:
+                  type: string
+      responses:
+        "200":
+          description: Validation run created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  validation_run_id:
+                    type: string
+                  validation_tier:
+                    type: string
+                  status:
+                    type: string
+                  decision:
+                    type: string
+                  stage_results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ValidationStageResult"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    get:
+      security:
+        - clerkBearer: []
+      summary: List validation runs for a task
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Validation runs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  validation_runs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ValidationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/validation-runs/{validation_run_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get validation run
+      parameters:
+        - $ref: "#/components/parameters/ValidationRunId"
+      responses:
+        "200":
+          description: Validation run
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  validation_run:
+                    $ref: "#/components/schemas/ValidationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/validation-runs/{validation_run_id}/stages:
+    get:
+      security:
+        - clerkBearer: []
+      summary: List validation stage results
+      parameters:
+        - $ref: "#/components/parameters/ValidationRunId"
+      responses:
+        "200":
+          description: Validation stage results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  validation_run_id:
+                    type: string
+                  stages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ValidationStageResult"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/validation-runs/{validation_run_id}/escalate:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Escalate validation run
+      parameters:
+        - $ref: "#/components/parameters/ValidationRunId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Validation run escalated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  validation_run:
+                    $ref: "#/components/schemas/ValidationRun"
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /v1/simulation/scenarios:
     post:
       security:
@@ -1150,7 +1880,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateSimulationScenarioRequest"
       responses:
-        "201":
+        "200":
           description: Scenario created
           content:
             application/json:
@@ -1237,7 +1967,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateSimulationScenarioVersionRequest"
       responses:
-        "201":
+        "200":
           description: Scenario version created
           content:
             application/json:

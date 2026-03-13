@@ -18,6 +18,7 @@ import (
 	"github.com/MikeS071/archonhq/pkg/events"
 	"github.com/MikeS071/archonhq/pkg/policy"
 	"github.com/MikeS071/archonhq/pkg/telemetry"
+	assurancesvc "github.com/MikeS071/archonhq/services/assurance"
 )
 
 var allowedSignupModes = map[string]struct{}{
@@ -626,13 +627,17 @@ func (s *Server) handleGetNodeLeasesV2(w http.ResponseWriter, r *http.Request) {
 }
 
 type createTaskRequestV2 struct {
-	TaskID       string `json:"task_id"`
-	WorkspaceID  string `json:"workspace_id"`
-	TaskFamily   string `json:"task_family"`
-	Title        string `json:"title"`
-	Description  string `json:"description,omitempty"`
-	SchemaRef    string `json:"schema_ref,omitempty"`
-	ApprovalMode string `json:"approval_mode,omitempty"`
+	TaskID                        string         `json:"task_id"`
+	WorkspaceID                   string         `json:"workspace_id"`
+	TaskFamily                    string         `json:"task_family"`
+	Title                         string         `json:"title"`
+	Description                   string         `json:"description,omitempty"`
+	SchemaRef                     string         `json:"schema_ref,omitempty"`
+	ApprovalMode                  string         `json:"approval_mode,omitempty"`
+	AcceptanceContractTemplateID  string         `json:"acceptance_contract_template_id,omitempty"`
+	AcceptanceContractTemplateVer int            `json:"acceptance_contract_template_version,omitempty"`
+	ValidationTier                string         `json:"validation_tier,omitempty"`
+	AcceptanceContract            map[string]any `json:"acceptance_contract,omitempty"`
 }
 
 func (s *Server) handleCreateTaskV2(w http.ResponseWriter, r *http.Request) {
@@ -696,10 +701,57 @@ func (s *Server) handleCreateTaskV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var contractSnapshot *assurancesvc.TaskAcceptanceContract
+	shouldAttachContract := strings.TrimSpace(req.ValidationTier) != "" ||
+		strings.TrimSpace(req.AcceptanceContractTemplateID) != "" ||
+		req.AcceptanceContractTemplateVer > 0 ||
+		len(req.AcceptanceContract) > 0
+	if shouldAttachContract {
+		snap, err := s.assurance.AttachTaskContract(r.Context(), assurancesvc.AttachTaskContractRequest{
+			TenantID:       actor.TenantID,
+			TaskID:         taskID,
+			TemplateID:     strings.TrimSpace(req.AcceptanceContractTemplateID),
+			TemplateVer:    req.AcceptanceContractTemplateVer,
+			ValidationTier: strings.TrimSpace(req.ValidationTier),
+			InlineContract: req.AcceptanceContract,
+		})
+		if err != nil {
+			switch {
+			case errors.Is(err, assurancesvc.ErrNotFound):
+				apierrors.Write(w, http.StatusNotFound, "acceptance_template_not_found", "Acceptance contract template not found.", corrID, nil)
+			case errors.Is(err, assurancesvc.ErrTemplateNotReady):
+				apierrors.Write(w, http.StatusConflict, "acceptance_template_not_published", "Acceptance contract template must be published before use.", corrID, nil)
+			case errors.Is(err, assurancesvc.ErrInvalidRequest):
+				apierrors.Write(w, http.StatusBadRequest, "invalid_request", err.Error(), corrID, nil)
+			default:
+				apierrors.Write(w, http.StatusInternalServerError, "acceptance_contract_attach_failed", "Failed to attach task acceptance contract.", corrID, map[string]any{"reason": err.Error()})
+			}
+			return
+		}
+		contractSnapshot = &snap
+		s.appendEvent(r, actor.TenantID, "task", taskID, "task.acceptance_contract_attached", map[string]any{
+			"contract_source":  snap.ContractSource,
+			"validation_tier":  snap.ValidationTier,
+			"template_id":      snap.TemplateID,
+			"template_version": snap.TemplateVersion,
+		})
+	}
+
 	s.appendEvent(r, actor.TenantID, "task", taskID, "task.created", map[string]any{"workspace_id": req.WorkspaceID, "task_family": req.TaskFamily, "title": req.Title})
 	s.appendEvent(r, actor.TenantID, "approval", approvalID, "approval.requested", map[string]any{"task_id": taskID})
 
-	writeJSON(w, http.StatusOK, map[string]any{"task_id": taskID, "status": status, "approval_request_id": approvalID, "correlation_id": corrID})
+	resp := map[string]any{"task_id": taskID, "status": status, "approval_request_id": approvalID, "correlation_id": corrID}
+	if contractSnapshot != nil {
+		resp["validation_tier"] = contractSnapshot.ValidationTier
+		resp["acceptance_contract"] = map[string]any{
+			"contract_source":   contractSnapshot.ContractSource,
+			"template_id":       contractSnapshot.TemplateID,
+			"template_version":  contractSnapshot.TemplateVersion,
+			"contract_hash":     assurancesvc.HashContract(contractSnapshot.ContractSnapshot),
+			"contract_snapshot": contractSnapshot.ContractSnapshot,
+		}
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *Server) handleGetTaskV2(w http.ResponseWriter, r *http.Request) {
