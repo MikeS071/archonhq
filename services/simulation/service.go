@@ -271,6 +271,10 @@ var v1ScenarioSeeds = []scenarioSeed{
 	{ScenarioID: "incident_replay_v1", Name: "Incident Replay", Goal: "Replay archived incidents against candidate mitigations."},
 	{ScenarioID: "critic_monoculture_v1", Name: "Critic Monoculture", Goal: "Measure diversity collapse and agreement inflation."},
 	{ScenarioID: "acceptance_contract_drift_v1", Name: "Acceptance Contract Drift", Goal: "Detect stale contract false accepts/rejects."},
+	{ScenarioID: "requester_default_v1", Name: "Requester Default", Goal: "Stress funded listing defaults and payout fallbacks."},
+	{ScenarioID: "dispute_griefing_v1", Name: "Dispute Griefing", Goal: "Measure dispute spam and arbitration bottlenecks."},
+	{ScenarioID: "sealed_task_leakage_v1", Name: "Sealed Task Leakage", Goal: "Detect sealed-work disclosure and misuse attempts."},
+	{ScenarioID: "claim_hoarding_v1", Name: "Claim Hoarding", Goal: "Validate anti-hoarding throttles against executor concentration."},
 }
 
 func (s *Service) EnsureV1ScenarioLibrary(_ context.Context, tenantID string) error {

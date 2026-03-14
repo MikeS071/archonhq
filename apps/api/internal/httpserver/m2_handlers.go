@@ -36,6 +36,9 @@ var minimumRoles = map[string]struct{}{
 	"auditor":        {},
 	"finance_viewer": {},
 	"developer":      {},
+	"requester":      {},
+	"executor":       {},
+	"arbitrator":     {},
 }
 
 type createTenantRequest struct {

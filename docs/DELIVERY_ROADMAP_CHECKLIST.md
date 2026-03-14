@@ -136,21 +136,22 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 
 ## M9 Open Market Network
 
-- [ ] Read M9 artefacts (`docs/OPEN_MARKET_NETWORK_BUILD_SPEC.ms`, `docs/M9_MIGRATION_SPEC.md`)
-- [ ] Add market profiles for requesters and executors
-- [ ] Add work-class policy model (`public_open`, `public_sealed`, `restricted_market`, `private_tenant_only`)
-- [ ] Add market listing publication, cancel, and feed flows
-- [ ] Add claim, bid, and award mechanics for whole-task and shard work
-- [ ] Add funded reserve checks before listing publication
-- [ ] Add task escrow service and escrow transfer lifecycle
-- [ ] Add payout account model and payout request flow
-- [ ] Add dispute and arbitration service boundaries
-- [ ] Add requester trust and market reputation snapshots
-- [ ] Add anti-spam, anti-Sybil, and claim-hoarding controls
-- [ ] Add open-market dashboards for listings, claims, disputes, escrows, and payouts
-- [ ] Add market-mode simulation scenarios (`requester_default_v1`, `dispute_griefing_v1`, `sealed_task_leakage_v1`, `claim_hoarding_v1`)
-- [ ] Gate market-mode rollout on simulation comparison and dispute/payout readiness
-- [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+- [x] Read M9 artefacts (`docs/OPEN_MARKET_NETWORK_BUILD_SPEC.md`, `docs/M9_MIGRATION_SPEC.md`)
+- [x] Add market profiles for requesters and executors
+- [x] Add work-class policy model (`public_open`, `public_sealed`, `restricted_market`, `private_tenant_only`)
+- [x] Add market listing publication, cancel, and feed flows
+- [x] Add claim, bid, and award mechanics for whole-task and shard work
+- [x] Add funded reserve checks before listing publication
+- [x] Add task escrow service and escrow transfer lifecycle
+- [x] Add payout account model and payout request flow
+- [x] Add dispute and arbitration service boundaries
+- [x] Add requester trust and market reputation snapshots
+- [x] Add anti-spam, anti-Sybil, and claim-hoarding controls
+- [x] Add open-market dashboards for listings, claims, disputes, escrows, and payouts
+- [x] Add market-mode simulation scenarios (`requester_default_v1`, `dispute_griefing_v1`, `sealed_task_leakage_v1`, `claim_hoarding_v1`)
+- [x] Gate market-mode rollout on simulation comparison and dispute/payout readiness
+- [x] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase
+  - Current review report: `docs/reviews/M9_REVIEW_GATE.md` (M9 open-market scope complete)
 
 ## Cross-Cutting Quality Gates
 
@@ -169,7 +170,7 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] Contract tests present for Hermes adapter and Paperclip connector
 - [x] Contract tests present for acceptance contract template, critic registry, and validation-run APIs
 - [x] Contract tests present for simulation registry and run APIs
-- [ ] Contract tests present for market profile, listing, escrow, payout, and dispute APIs
+- [x] Contract tests present for market profile, listing, escrow, payout, and dispute APIs
 - [x] Security tests present for tenant isolation, forbidden access checks, and invalid signature rejection
 - [ ] Security tests present for acceptance-contract override controls and raw-tool-output exposure policy
 - [ ] Security tests present for work-class publication controls, sealed-work access, and payout identity isolation
@@ -186,5 +187,5 @@ This checklist is aligned to the delivery milestones in `CODEX_INITIAL_PROMPT.md
 - [x] M6 exit: Paperclip projections syncing from internal source-of-truth state
 - [x] M7 exit: advanced merge and bounded self-improvement flows operational
 - [x] M8 exit: simulation scenarios, replayable runs, baseline comparisons, and policy gates operational
-- [ ] M9 exit: funded open-market listings, escrow, disputes, payouts, and market-mode rollout gates operational
+- [x] M9 exit: funded open-market listings, escrow, disputes, payouts, and market-mode rollout gates operational
 - [ ] Use the REVIEW_GATE_PROMPT.md to review specs and code delivered and ensure there aren't any gaps in this phase

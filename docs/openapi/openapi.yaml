@@ -2553,6 +2553,1185 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /v1/market/profiles:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create market profile
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - profile_type
+                - display_name
+              properties:
+                profile_id:
+                  type: string
+                profile_type:
+                  type: string
+                  enum: [requester, executor, hybrid]
+                display_name:
+                  type: string
+                verification_status:
+                  type: string
+                executor_tier:
+                  type: string
+                capability_tags:
+                  type: array
+                  items:
+                    type: string
+                region_allowlist:
+                  type: array
+                  items:
+                    type: string
+                work_class_allowlist:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Market profile created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/profiles/{profile_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get market profile
+      parameters:
+        - in: path
+          name: profile_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Market profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    patch:
+      security:
+        - clerkBearer: []
+      summary: Patch market profile
+      parameters:
+        - in: path
+          name: profile_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Market profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/profiles/{profile_id}/reputation:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get market profile reputation snapshot
+      parameters:
+        - in: path
+          name: profile_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reputation snapshot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile_id:
+                    type: string
+                  reputation:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/funding-accounts:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create market funding account
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - owner_profile_id
+                - currency
+                - initial_balance
+              properties:
+                account_id:
+                  type: string
+                owner_profile_id:
+                  type: string
+                currency:
+                  type: string
+                initial_balance:
+                  type: number
+                reserve_policy_id:
+                  type: string
+      responses:
+        "200":
+          description: Funding account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  funding_account:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/funding-accounts/{account_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get market funding account
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Funding account details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  funding_account:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/listings:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create market listing
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - task_id
+                - requester_profile_id
+                - work_class
+                - listing_mode
+                - budget_total
+                - currency
+                - funding_account_id
+              properties:
+                listing_id:
+                  type: string
+                task_id:
+                  type: string
+                requester_profile_id:
+                  type: string
+                work_class:
+                  type: string
+                  enum: [public_open, public_sealed, restricted_market, private_tenant_only]
+                listing_mode:
+                  type: string
+                  enum: [fixed_price_open_claim, fixed_price_bid_select, reserve_price_auction, redundant_competition, decomposed_shard_market]
+                budget_total:
+                  type: number
+                budget_per_shard:
+                  type: number
+                currency:
+                  type: string
+                funding_account_id:
+                  type: string
+                contract_snapshot:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Listing created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  listing:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    get:
+      security:
+        - clerkBearer: []
+      summary: List market listings feed
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: work_class
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Listing feed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  listings:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/listings/{listing_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get market listing
+      parameters:
+        - in: path
+          name: listing_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Listing details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  listing:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/listings/{listing_id}/publish:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Publish market listing
+      parameters:
+        - in: path
+          name: listing_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Listing published
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  listing:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/listings/{listing_id}/cancel:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Cancel market listing
+      parameters:
+        - in: path
+          name: listing_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Listing cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  listing:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/listings/{listing_id}/claims:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create market claim for listing
+      parameters:
+        - in: path
+          name: listing_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - executor_profile_id
+              properties:
+                claim_id:
+                  type: string
+                executor_profile_id:
+                  type: string
+                claim_type:
+                  type: string
+                  enum: [whole_task, shard, verifier, reducer, redundant_competitor]
+                bond_amount:
+                  type: number
+                policy_checks_passed:
+                  type: boolean
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Claim created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claim:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/claims/{claim_id}/withdraw:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Withdraw market claim
+      parameters:
+        - in: path
+          name: claim_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Claim withdrawn
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claim:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/claims/{claim_id}/award:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Award market claim
+      parameters:
+        - in: path
+          name: claim_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policy_checks_passed:
+                  type: boolean
+      responses:
+        "200":
+          description: Claim awarded and escrow updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claim:
+                    type: object
+                    additionalProperties: true
+                  escrow:
+                    type: object
+                    additionalProperties: true
+                  transfer:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/listings/{listing_id}/bids:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Submit market bid for listing
+      parameters:
+        - in: path
+          name: listing_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - executor_profile_id
+                - amount
+                - currency
+              properties:
+                bid_id:
+                  type: string
+                executor_profile_id:
+                  type: string
+                amount:
+                  type: number
+                currency:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Bid created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bid:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/bids/{bid_id}/accept:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Accept market bid
+      parameters:
+        - in: path
+          name: bid_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policy_checks_passed:
+                  type: boolean
+      responses:
+        "200":
+          description: Bid accepted and escrow updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bid:
+                    type: object
+                    additionalProperties: true
+                  escrow:
+                    type: object
+                    additionalProperties: true
+                  transfer:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/listings/{listing_id}/fund:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Fund listing escrow
+      parameters:
+        - in: path
+          name: listing_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                escrow_id:
+                  type: string
+                amount:
+                  type: number
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Listing funded into escrow
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  escrow:
+                    type: object
+                    additionalProperties: true
+                  transfer:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/escrows/{escrow_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get market escrow details
+      parameters:
+        - in: path
+          name: escrow_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Escrow details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  escrow:
+                    type: object
+                    additionalProperties: true
+                  transfers:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/escrows/{escrow_id}/release:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Release escrow funds
+      parameters:
+        - in: path
+          name: escrow_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                reason:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Escrow funds released
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  escrow:
+                    type: object
+                    additionalProperties: true
+                  transfer:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/escrows/{escrow_id}/refund:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Refund escrow funds
+      parameters:
+        - in: path
+          name: escrow_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                reason:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Escrow funds refunded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  escrow:
+                    type: object
+                    additionalProperties: true
+                  transfer:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/payout-accounts:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Create payout account
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - owner_profile_id
+                - provider
+                - provider_account_ref
+                - jurisdiction
+              properties:
+                payout_account_id:
+                  type: string
+                owner_profile_id:
+                  type: string
+                provider:
+                  type: string
+                provider_account_ref:
+                  type: string
+                jurisdiction:
+                  type: string
+                status:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Payout account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payout_account:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/payout-accounts/{payout_account_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get payout account
+      parameters:
+        - in: path
+          name: payout_account_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payout account details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payout_account:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/payouts:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Request payout
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - payout_account_id
+                - amount
+                - currency
+              properties:
+                payout_id:
+                  type: string
+                payout_account_id:
+                  type: string
+                escrow_id:
+                  type: string
+                amount:
+                  type: number
+                currency:
+                  type: string
+                auto_complete:
+                  type: boolean
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Payout requested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payout:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/payouts/{payout_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get payout
+      parameters:
+        - in: path
+          name: payout_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payout details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payout:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/disputes:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Open market dispute
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - listing_id
+                - dispute_type
+                - reason
+              properties:
+                dispute_id:
+                  type: string
+                listing_id:
+                  type: string
+                escrow_id:
+                  type: string
+                claim_id:
+                  type: string
+                dispute_type:
+                  type: string
+                  enum: [non_delivery, acceptance_disagreement, spec_drift, requester_default, executor_misconduct, sealed_input_misuse]
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Dispute opened
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dispute:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/disputes/{dispute_id}:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get market dispute
+      parameters:
+        - in: path
+          name: dispute_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dispute details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dispute:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/disputes/{dispute_id}/resolve:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Resolve market dispute
+      parameters:
+        - in: path
+          name: dispute_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - decision
+              properties:
+                decision:
+                  type: string
+                fee_shift:
+                  type: number
+                escrow_release_action:
+                  type: string
+                  enum: [none, release, refund]
+                escrow_amount:
+                  type: number
+                reputation_adjustment:
+                  type: object
+                  additionalProperties: true
+                appeal_allowed:
+                  type: boolean
+      responses:
+        "200":
+          description: Dispute resolved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dispute:
+                    type: object
+                    additionalProperties: true
+                  escrow:
+                    type: object
+                    additionalProperties: true
+                  transfer:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/disputes/{dispute_id}/appeal:
+    post:
+      security:
+        - clerkBearer: []
+      summary: Appeal market dispute decision
+      parameters:
+        - in: path
+          name: dispute_id
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Dispute appealed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dispute:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /v1/market/dashboard:
+    get:
+      security:
+        - clerkBearer: []
+      summary: Get market dashboard summary
+      responses:
+        "200":
+          description: Market dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  market_dashboard:
+                    type: object
+                    additionalProperties: true
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /v1/integrations/paperclip/sync:
     post:
       security:

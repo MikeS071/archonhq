@@ -292,10 +292,20 @@ func jsonValue(t *testing.T, payload []byte, key string) string {
 	if err := json.Unmarshal(payload, &obj); err != nil {
 		t.Fatalf("unmarshal payload: %v body=%s", err, string(payload))
 	}
-	if v, ok := obj[key]; ok {
-		if s, ok := v.(string); ok {
-			return s
+	parts := strings.Split(key, ".")
+	var current any = obj
+	for _, part := range parts {
+		next, ok := current.(map[string]any)
+		if !ok {
+			return ""
 		}
+		current, ok = next[part]
+		if !ok {
+			return ""
+		}
+	}
+	if s, ok := current.(string); ok {
+		return s
 	}
 	return ""
 }

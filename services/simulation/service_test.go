@@ -285,8 +285,23 @@ func TestEnsureV1ScenarioLibraryAndModes(t *testing.T) {
 		t.Fatalf("seed v1 library idempotent call: %v", err)
 	}
 	scenarios := svc.ListScenarios(ctx, "ten_01")
-	if len(scenarios) < 11 {
+	if len(scenarios) < 15 {
 		t.Fatalf("expected seeded scenarios, got %d", len(scenarios))
+	}
+	requiredMarketScenarios := []string{
+		"requester_default_v1",
+		"dispute_griefing_v1",
+		"sealed_task_leakage_v1",
+		"claim_hoarding_v1",
+	}
+	scenarioSet := map[string]bool{}
+	for _, scenario := range scenarios {
+		scenarioSet[scenario.ScenarioID] = true
+	}
+	for _, scenarioID := range requiredMarketScenarios {
+		if !scenarioSet[scenarioID] {
+			t.Fatalf("expected market scenario %s in seeded library", scenarioID)
+		}
 	}
 	seeded, err := svc.GetScenario(ctx, "ten_01", "scheduler_starvation_v1")
 	if err != nil {

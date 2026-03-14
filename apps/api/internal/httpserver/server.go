@@ -23,6 +23,10 @@ import (
 	redisclient "github.com/MikeS071/archonhq/pkg/redis"
 	"github.com/MikeS071/archonhq/pkg/telemetry"
 	assurancesvc "github.com/MikeS071/archonhq/services/assurance"
+	disputessvc "github.com/MikeS071/archonhq/services/disputes"
+	escrowsvc "github.com/MikeS071/archonhq/services/escrow"
+	marketplacesvc "github.com/MikeS071/archonhq/services/marketplace"
+	payoutssvc "github.com/MikeS071/archonhq/services/payouts"
 	simulationsvc "github.com/MikeS071/archonhq/services/simulation"
 )
 
@@ -35,6 +39,10 @@ type Server struct {
 	events      events.Store
 	assurance   *assurancesvc.Service
 	simulation  *simulationsvc.Service
+	marketplace *marketplacesvc.Service
+	escrow      *escrowsvc.Service
+	payouts     *payoutssvc.Service
+	disputes    *disputessvc.Service
 }
 
 func New(
@@ -54,6 +62,10 @@ func New(
 		events:      eventStore,
 		assurance:   assurancesvc.New(),
 		simulation:  simulationsvc.New(),
+		marketplace: marketplacesvc.New(),
+		escrow:      escrowsvc.New(),
+		payouts:     payoutssvc.New(),
+		disputes:    disputessvc.New(),
 	}
 }
 
@@ -170,6 +182,35 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/simulation/replays", auth.RequireHuman(http.HandlerFunc(s.handleRequestSimulationReplayV2)))
 	mux.Handle("GET /v1/simulation/replays/{replay_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetSimulationReplayV2)))
 	mux.Handle("GET /v1/simulation/dashboard", auth.RequireHuman(http.HandlerFunc(s.handleSimulationDashboardV2)))
+	mux.Handle("POST /v1/market/profiles", auth.RequireHuman(http.HandlerFunc(s.handleCreateMarketProfileV2)))
+	mux.Handle("GET /v1/market/profiles/{profile_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetMarketProfileV2)))
+	mux.Handle("PATCH /v1/market/profiles/{profile_id}", auth.RequireHuman(http.HandlerFunc(s.handlePatchMarketProfileV2)))
+	mux.Handle("GET /v1/market/profiles/{profile_id}/reputation", auth.RequireHuman(http.HandlerFunc(s.handleMarketProfileReputationV2)))
+	mux.Handle("POST /v1/market/funding-accounts", auth.RequireHuman(http.HandlerFunc(s.handleCreateMarketFundingAccountV2)))
+	mux.Handle("GET /v1/market/funding-accounts/{account_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetMarketFundingAccountV2)))
+	mux.Handle("POST /v1/market/listings", auth.RequireHuman(http.HandlerFunc(s.handleCreateMarketListingV2)))
+	mux.Handle("GET /v1/market/listings", auth.RequireHuman(http.HandlerFunc(s.handleListMarketListingsV2)))
+	mux.Handle("GET /v1/market/listings/{listing_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetMarketListingV2)))
+	mux.Handle("POST /v1/market/listings/{listing_id}/publish", auth.RequireHuman(http.HandlerFunc(s.handlePublishMarketListingV2)))
+	mux.Handle("POST /v1/market/listings/{listing_id}/cancel", auth.RequireHuman(http.HandlerFunc(s.handleCancelMarketListingV2)))
+	mux.Handle("POST /v1/market/listings/{listing_id}/claims", auth.RequireHuman(http.HandlerFunc(s.handleCreateMarketClaimV2)))
+	mux.Handle("POST /v1/market/claims/{claim_id}/withdraw", auth.RequireHuman(http.HandlerFunc(s.handleWithdrawMarketClaimV2)))
+	mux.Handle("POST /v1/market/claims/{claim_id}/award", auth.RequireHuman(http.HandlerFunc(s.handleAwardMarketClaimV2)))
+	mux.Handle("POST /v1/market/listings/{listing_id}/bids", auth.RequireHuman(http.HandlerFunc(s.handleCreateMarketBidV2)))
+	mux.Handle("POST /v1/market/bids/{bid_id}/accept", auth.RequireHuman(http.HandlerFunc(s.handleAcceptMarketBidV2)))
+	mux.Handle("POST /v1/market/listings/{listing_id}/fund", auth.RequireHuman(http.HandlerFunc(s.handleFundMarketListingEscrowV2)))
+	mux.Handle("GET /v1/market/escrows/{escrow_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetMarketEscrowV2)))
+	mux.Handle("POST /v1/market/escrows/{escrow_id}/release", auth.RequireHuman(http.HandlerFunc(s.handleReleaseMarketEscrowV2)))
+	mux.Handle("POST /v1/market/escrows/{escrow_id}/refund", auth.RequireHuman(http.HandlerFunc(s.handleRefundMarketEscrowV2)))
+	mux.Handle("POST /v1/payout-accounts", auth.RequireHuman(http.HandlerFunc(s.handleCreatePayoutAccountV2)))
+	mux.Handle("GET /v1/payout-accounts/{payout_account_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetPayoutAccountV2)))
+	mux.Handle("POST /v1/payouts", auth.RequireHuman(http.HandlerFunc(s.handleCreatePayoutV2)))
+	mux.Handle("GET /v1/payouts/{payout_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetPayoutV2)))
+	mux.Handle("POST /v1/market/disputes", auth.RequireHuman(http.HandlerFunc(s.handleOpenMarketDisputeV2)))
+	mux.Handle("GET /v1/market/disputes/{dispute_id}", auth.RequireHuman(http.HandlerFunc(s.handleGetMarketDisputeV2)))
+	mux.Handle("POST /v1/market/disputes/{dispute_id}/resolve", auth.RequireHuman(http.HandlerFunc(s.handleResolveMarketDisputeV2)))
+	mux.Handle("POST /v1/market/disputes/{dispute_id}/appeal", auth.RequireHuman(http.HandlerFunc(s.handleAppealMarketDisputeV2)))
+	mux.Handle("GET /v1/market/dashboard", auth.RequireHuman(http.HandlerFunc(s.handleMarketDashboardV2)))
 
 	return s.withCorrelationID(s.withIdempotencyValidation(mux))
 }

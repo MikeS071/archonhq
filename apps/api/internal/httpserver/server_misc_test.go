@@ -3,6 +3,7 @@ package httpserver
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
@@ -78,5 +79,29 @@ func TestServerMiscHandlersAndMiddleware(t *testing.T) {
 	}
 	if got := rrRoot.Header().Get("X-Correlation-ID"); got != "corr_fixed" {
 		t.Fatalf("expected correlation id echo, got %q", got)
+	}
+}
+
+func TestHandleNotImplemented(t *testing.T) {
+	dbMock, _, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("sqlmock new: %v", err)
+	}
+	defer dbMock.Close()
+
+	srv := newTestServer(t, dbMock, &inMemoryEventStore{})
+	h := srv.withCorrelationID(http.HandlerFunc(srv.handleNotImplemented))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/placeholder", nil)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotImplemented {
+		t.Fatalf("not implemented expected 501 got %d body=%s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), "not_implemented") {
+		t.Fatalf("expected not_implemented code body=%s", rr.Body.String())
+	}
+	if rr.Header().Get("X-Correlation-ID") == "" {
+		t.Fatalf("expected correlation id header to be set")
 	}
 }
