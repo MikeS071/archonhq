@@ -1,43 +1,48 @@
 # ArchonHQ
 
-**AI agent coordination dashboard with smart LLM routing.**
+**AI automation that saves time and effort for busy small businesses and solopreneurs.**
 
-Live at [archonhq.ai](https://archonhq.ai) · [Docs](https://archonhq.ai/docs) · [Roadmap](https://archonhq.ai/roadmap)
-
-Built on [OpenClaw](https://openclaw.ai) — the AI agent operating system.
+Live at [archonhq.ai](https://archonhq.ai)
 
 ---
 
-## What it does
+## What it offers
 
-ArchonHQ is the command layer for teams running AI agents. It connects to your local [OpenClaw](https://openclaw.ai) gateway and gives you:
+Practical AI automation templates and consulting services:
 
-- **Kanban board** with drag-and-drop, WIP limits, per-card activity timelines, and full API access
-- **Smart LLM routing** via AiPipe — scores each request on complexity and routes to the cheapest model that can handle it. Simple tasks go to `gpt-4o-mini`, complex reasoning to Claude Sonnet. Typical saving: ~50% vs using a single frontier model
-- **Multi-provider support** — OpenAI, Anthropic, xAI, Google Gemini, OpenRouter, MiniMax, Kimi; per-tenant key isolation
-- **Agent monitoring** — see active agents, their costs, token usage, and current tasks in real time
-- **Telegram notifications** when tasks are created, updated, or reach a critical state
-- **Connection Wizard** — 8-step setup for gateway, provider keys, smart routing, agent roles, and notifications
-- **Billing** — Strategos ($39/mo) and Archon ($99/mo) via Stripe
+- **Automation Templates** — Ready-to-use systems for coaching reports, content creation, and daily operations. Cut manual work by 50-75%.
+- **Automation Quick-Win Service** — Custom automation built for your specific workflow. $2,500–$5,000.
+
+## Products
+
+| Product | Price | Description |
+|---------|-------|-------------|
+| Coaching Report Automation Template | $39–$59 | Automated client reports, 75% less manual work |
+| AI Content & Operations Pack | $49–$69 | Templates for emails, content, and admin tasks |
+
+## Services
+
+**Automation Quick-Win Service** — $2,500–$5,000
+
+A 60-minute call to identify one repetitive task draining your time, followed by a custom automation built for your business.
+
+[Book a call →](https://archonhq.ai/services)
 
 ## Tech stack
 
-Next.js 16 (App Router) · TypeScript · Tailwind v4 · shadcn/ui · Drizzle ORM · PostgreSQL · Go (AiPipe)
+Next.js 16 (App Router) · TypeScript · Tailwind v4 · shadcn/ui · Drizzle ORM · PostgreSQL
 
-## Quick start (self-hosted)
-
-See the [self-hosting guide →](https://archonhq.ai/docs/guides/self-hosting)
+## Quick start
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/MikeS071/Mission-Control
-cd Mission-Control
+git clone https://github.com/MikeS071/archonhq
+cd archonhq
 npm install
 
 # 2. Configure environment
-cp .env.example .env.local
-# Fill in: DATABASE_URL, GOOGLE_CLIENT_ID/SECRET, NEXTAUTH_SECRET,
-#          NEXTAUTH_URL, AIPIPE_URL, AIPIPE_ADMIN_SECRET
+cp .env.local.example .env.local
+# Fill in: DATABASE_URL, NEXTAUTH_SECRET, GOOGLE_CLIENT_ID/SECRET
 
 # 3. Run DB migrations
 npm run migrate
@@ -50,31 +55,20 @@ npm run dev
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Local dev server (port 3000) |
+| `npm run dev` | Local dev server |
 | `npm run build` | Production build |
 | `npm run migrate` | Run Drizzle schema migrations |
-| `npm run test` | Run unit tests |
-| `bash scripts/regression-test.sh` | Full 87-test regression suite |
-| `bash scripts/pre-release-check.sh` | Pre-merge gate (TS, Stripe, Coolify, infra) |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run unit tests |
 
 ## Repository structure
 
 ```
-src/app/              Pages and API routes
-src/components/       UI components (KanbanBoard, AiPipeWidget, etc.)
+src/app/              Pages (landing, products, services, insights, admin)
+src/components/       UI components (shadcn/ui)
 src/db/               Drizzle schema and migrations
-src/lib/              Shared utilities, DB client, AiPipe client
-docs/                 User docs (served at /docs via Fumadocs)
-  guides/             Getting started, how-to-use, self-hosting
-  features/           Feature deep-dives
-  technical/          Architecture and implementation references
-  api-reference/      REST API docs
-scripts/              Regression tests, pre-release checks
+src/lib/              Shared utilities, DB client, auth
 ```
-
-## OpenClaw ecosystem
-
-ArchonHQ is part of the [OpenClaw](https://openclaw.ai) ecosystem. OpenClaw is the agent operating system that ArchonHQ connects to via the gateway. If you're running OpenClaw locally, the gateway is already running at `http://localhost:18789` and ArchonHQ will discover it automatically.
 
 ## License
 

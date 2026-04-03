@@ -14,7 +14,7 @@ Steps — execute sequentially, report progress:
 1. Init if needed: create-next-app@latest . --ts --tailwind --eslint --app --src-dir --import-alias "@/*"; shadcn-ui init; add card button table badge dialog tabs accordion toast
 2. Install deps: npm i @hello-pangea/dnd @uiw/react-md-editor drizzle-orm pg drizzle-kit
 3. Add Docker Compose: Create docker-compose.yml at root with Postgres service (image: postgres:16, env POSTGRES_USER=mc_user, POSTGRES_PASSWORD=mc_pass, POSTGRES_DB=mission_control, ports:5432:5432, volume for data); add depends_on for web if containerizing app later
-4. Env setup: Add .env.local with DATABASE_URL=postgresql://mc_user:mc_pass@localhost:5432/mission_control?sslmode=disable
+4. Env setup: Add .env.local with DATABASE_URL=YOUR_DATABASE_URL_HERE
 5. Drizzle setup: Create drizzle.config.ts (dialect: postgresql, schema: ./src/db/schema.ts, out: ./drizzle/migrations); define tasks table in schema.ts; add scripts: "migrate": "drizzle-kit generate && drizzle-kit push", "studio": "drizzle-kit studio"
 6. DB connection: lib/db.ts → drizzle(pg.Pool({ connectionString: process.env.DATABASE_URL }))
 7. API routes:
