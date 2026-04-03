@@ -12,19 +12,18 @@ const BASE_URL = 'https://archonhq.ai';
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: 'Mission Control — AI Agent Coordination Dashboard',
-    template: '%s | Mission Control',
+    default: 'ArchonHQ — AI Automation for Small Businesses',
+    template: '%s | ArchonHQ',
   },
   description:
-    'Mission Control is an AI agent coordination dashboard. Manage tasks, track agent activity, monitor LLM costs, and route requests to the right model automatically.',
+    'Practical AI automation that saves time and effort for busy small businesses and solopreneurs. Cut manual work by 50-80% on repetitive tasks.',
   keywords: [
-    'AI agent dashboard',
-    'LLM cost optimisation',
-    'AI routing',
-    'agent coordination',
-    'OpenClaw',
-    'AiPipe',
-    'kanban for AI agents',
+    'AI automation',
+    'small business automation',
+    'solopreneur tools',
+    'workflow automation',
+    'AI templates',
+    'automation templates',
   ],
   authors: [{ name: 'ArchonHQ', url: BASE_URL }],
   creator: 'ArchonHQ',

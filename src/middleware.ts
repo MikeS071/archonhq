@@ -8,13 +8,16 @@ const { auth } = NextAuth(authConfig);
 const PUBLIC_PATHS = [
   '/',
   '/signin',
-  '/roadmap',
+  '/signup',
+  '/about',
+  '/products',
+  '/products/',
+  '/services',
+  '/insights',
+  '/insights/',
+  '/download',
   '/api/auth',
-  '/api/telegram',
-  '/api/waitlist',
-  '/api/feature-requests',
-  '/api/newsletter/unsubscribe',
-  '/unsubscribe',
+  '/api/newsletter',
 ];
 
 export default auth((req: NextAuthRequest) => {
@@ -46,5 +49,5 @@ export default auth((req: NextAuthRequest) => {
 });
 
 export const config = {
-  matcher: ['/api/:path*', '/dashboard/:path*'],
+  matcher: ['/api/:path*', '/admin/:path*'],
 };

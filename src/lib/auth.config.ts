@@ -20,24 +20,10 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     jwt({ token }) {
-      // tenantId is already set during sign-in (see auth.ts); just pass through
       return token;
     },
-    session({ session, token }) {
-      if (typeof token.tenantId === 'number') {
-        session.tenantId = token.tenantId;
-      }
+    session({ session }) {
       return session;
-    },
-    redirect({ url, baseUrl }) {
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-      try {
-        const target = new URL(url);
-        if (target.origin === baseUrl) return url;
-      } catch {
-        // ignore malformed URLs
-      }
-      return `${baseUrl}/dashboard`;
     },
   },
 };

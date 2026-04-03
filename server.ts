@@ -3,7 +3,6 @@ import { createServer as createHttpServer } from 'http';
 import { readFileSync } from 'fs';
 import next from 'next';
 import { parse } from 'url';
-import { startHeartbeatWorker } from './src/lib/heartbeat';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -18,8 +17,6 @@ const sslOptions = {
 };
 
 app.prepare().then(() => {
-  startHeartbeatWorker();
-
   const handler = (req: any, res: any) => {
     const parsedUrl = parse(req.url!, true);
     handle(req, res, parsedUrl);
